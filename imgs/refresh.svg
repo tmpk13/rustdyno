@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" xmlns:bx="https://boxy-svg.com">
+  <defs>
+    <radialGradient gradientUnits="userSpaceOnUse" cx="336.141" cy="140.318" r="50.556" id="gradient-0">
+      <stop offset="0" style="stop-color: rgb(0, 0, 0)"></stop>
+      <stop offset="1" style="stop-color: rgb(0% 0% 0%)"></stop>
+    </radialGradient>
+  </defs>
+  <path d="M 529.725 146.505 Q 544.465 127.936 559.205 146.505 L 611.614 212.529 Q 626.354 231.098 596.874 231.098 L 492.056 231.098 Q 462.576 231.098 477.316 212.529 Z" bx:shape="triangle 462.576 127.936 163.778 103.162 0.5 0.18 1@1cee5f50" style="stroke: rgba(0, 0, 0, 0); transform-origin: 544.466px 184.16px 0px;" transform="matrix(0.604973, -0.796246, 0.796246, 0.604973, -251.159069, -44.456135)"></path>
+  <path style="fill: none; stroke: rgb(0, 0, 0);" d=""></path>
+  <path style="fill: none; stroke: rgb(0, 0, 0); stroke-width: 45px; stroke-linecap: round; transform-origin: 245.923px 269.913px 0px;" d="M 245.825 137.056 C 348.098 137.056 412.019 247.77 360.882 336.341 C 309.746 424.912 181.905 424.912 130.768 336.341 C 101.249 285.213 109.011 220.739 149.82 178.077" transform="matrix(0.959282, 0.282451, -0.282451, 0.959282, 0, 0)"></path>
+</svg>
