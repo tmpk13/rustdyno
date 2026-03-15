@@ -1,0 +1,16 @@
+[board]
+name = "STM32F411 BlackPill"
+chip = "STM32F411CEUx"
+target = "thumbv7em-none-eabihf"
+
+[probe]
+protocol = "Swd"
+speed = 4000          # kHz
+
+[flash]
+restore_unwritten = false
+halt_afterwards = false
+
+[rtt]
+enabled = true
+channels = [{ up = 0, name = "Terminal" }]

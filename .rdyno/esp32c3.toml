@@ -1,0 +1,19 @@
+[board]
+name   = "ESP32-C3"
+chip   = "esp32c3"
+target = "riscv32imc-unknown-none-elf"
+
+[probe]
+protocol = "jtag"
+speed    = 4000        # kHz — USB-JTAG on ESP32-C3 handles up to ~4 MHz reliably
+
+[flash]
+# probe-rs handles ESP32-C3 flash automatically; add extra options here if needed
+# e.g. reset_halt = true
+
+[rtt]
+enabled = true
+
+[[rtt.channels]]
+up   = 0
+name = "Terminal"

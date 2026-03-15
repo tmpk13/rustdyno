@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" xmlns:bx="https://boxy-svg.com">
+  <defs>
+    <bx:grid x="0" y="0" width="10" height="10"></bx:grid>
+  </defs>
+  <polyline style="fill: none; stroke-width: 50px; stroke-linecap: round; stroke-linejoin: round; stroke: rgb(77, 120, 64); transform-origin: 309.992px 250.005px 0px;" points="199.997 260.017 309.992 380.005 419.997 260.009" transform="matrix(0.000036, -1, 1, 0.000036, 0.000001, -0.000024)"></polyline>
+  <line style="fill: none; stroke-width: 50px; stroke-linecap: round; stroke: rgb(77, 120, 64);" x1="429.992" y1="250.005" x2="79.992" y2="250.005"></line>
+</svg>
