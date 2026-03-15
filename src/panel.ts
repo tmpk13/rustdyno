@@ -264,3 +264,63 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
     </html>`;
     }
 }
+
+export class NewProjectPanelProvider implements vscode.WebviewViewProvider {
+    public static readonly viewType = "embeddedRust.newProject";
+
+    private view?: vscode.WebviewView;
+
+    constructor(private readonly ext: vscode.ExtensionContext) { }
+
+    resolveWebviewView(view: vscode.WebviewView) {
+        this.view = view;
+        view.webview.options = {
+            enableScripts: true,
+            localResourceRoots: [vscode.Uri.joinPath(this.ext.extensionUri, "media")],
+        };
+        view.webview.html = this.getHtml();
+        view.webview.onDidReceiveMessage((msg) => {
+            if (msg.command === "newProject") {
+                vscode.commands.executeCommand("embeddedRust.newProject");
+            }
+        });
+    }
+
+    refresh() {
+        if (this.view) { this.view.webview.html = this.getHtml(); }
+    }
+
+    private getHtml(): string {
+        const board = getActiveBoard();
+        const cssUri = this.view!.webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, "media", "panel.css"));
+        const esc = (s: string) =>
+            s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+        const hasConfig = !!board?.new_project;
+        const boardName = board?.board.name ?? "no board selected";
+
+        const body = hasConfig
+            ? `<p class="np-board">Board: <strong>${esc(boardName)}</strong></p>
+      <button onclick="send('newProject')">New Project…</button>`
+            : `<p class="np-hint">Select a board with a <code>[new_project]</code> config to scaffold a project.</p>`;
+
+        return /*html*/`<!DOCTYPE html>
+    <html>
+    <head>
+      <link rel="stylesheet" href="${cssUri}">
+      <style>
+        .np-board { font-size:12px; opacity:0.75; margin:0 0 8px; }
+        .np-hint  { font-size:12px; opacity:0.55; font-style:italic; margin:0; }
+        code { font-family: var(--vscode-editor-font-family, monospace); }
+      </style>
+    </head>
+    <body>
+      ${body}
+      <script>
+        const vscode = acquireVsCodeApi();
+        function send(cmd) { vscode.postMessage({ command: cmd }); }
+      </script>
+    </body>
+    </html>`;
+    }
+}

@@ -14,3 +14,43 @@ halt_afterwards = false
 [rtt]
 enabled = true
 channels = [{ up = 0, name = "Terminal" }]
+
+# ---------------------------------------------------------------------------
+# [new_project] — files and settings scaffolded when creating a new project
+# ---------------------------------------------------------------------------
+[new_project]
+runner = "probe-rs run --chip STM32F411CEUx"
+
+[new_project.dependencies]
+"cortex-m"      = { version = "0.7", features = ["critical-section-single-core"] }
+"cortex-m-rt"   = "0.7"
+"rtt-target"    = "0.5"
+"panic-rtt-target" = "0.1"
+
+[[new_project.files]]
+path    = "src/main.rs"
+content = """
+#![no_std]
+#![no_main]
+
+use cortex_m_rt::entry;
+use panic_rtt_target as _;
+use rtt_target::{rprintln, rtt_init_print};
+
+#[entry]
+fn main() -> ! {
+    rtt_init_print!();
+    rprintln!(\"Hello from STM32F411!\");
+    loop {}
+}
+"""
+
+[[new_project.files]]
+path    = ".cargo/config.toml"
+content = """
+[target.thumbv7em-none-eabihf]
+runner = "probe-rs run --chip STM32F411CEUx"
+
+[build]
+target = "thumbv7em-none-eabihf"
+"""

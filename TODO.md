@@ -20,7 +20,11 @@
 - [ ] Port should be saved as default in the .boards file
 - [ ] Make .boards folder a different name, and picker.toml
 - [ ] Toggle button for run button in status bar
-- [ ] Poll serial device state to see if still connected, while not doing a command
-- [ ] On hover for 2 sec show the command for build/flash
+- [x] Poll serial device state to see if still connected, while not doing a command
+- [x] On hover for 2 sec show the command for build/flash
 - [ ] Generate new projects
 - [ ] Add ability to name devices
+- [ ] Generate a `.rdyno` file if it does not exist
+- [ ] Add config items options
+- [ ] Have git repo for list of configs
+- [ ] Have folders for boards, split up the toml files

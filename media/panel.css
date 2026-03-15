@@ -343,6 +343,18 @@ button.done .btn-check {
     margin-bottom: 8px;
 }
 
+.new-project-btn {
+    background: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
+    font-size: 12px;
+    min-height: 1.8rem;
+    margin-bottom: 8px;
+}
+
+.new-project-btn:hover {
+    background: var(--vscode-button-secondaryHoverBackground);
+}
+
 .btn-tooltip {
     position: fixed;
     background: var(--vscode-editorHoverWidget-background);

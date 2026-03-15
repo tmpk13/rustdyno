@@ -3,12 +3,27 @@ import * as fs from "fs";
 import * as path from "path";
 import * as TOML from "@iarna/toml";
 
+export interface NewProjectFile {
+  path: string;
+  content: string;
+}
+
+export interface NewProjectConfig {
+  /** Files to create when generating a new project from this board config */
+  files?: NewProjectFile[];
+  /** Optional cargo dependencies to add to Cargo.toml */
+  dependencies?: Record<string, string>;
+  /** Optional .cargo/config.toml runner line */
+  runner?: string;
+}
+
 export interface BoardConfig {
   board: { name: string; chip: string; target: string };
   probe: { protocol: string; speed: number; port?: string };
   flash: Record<string, unknown>;
   rtt: { enabled: boolean; channels: { up: number; name: string }[] };
   run?: { command?: string };
+  new_project?: NewProjectConfig;
 }
 
 let activeBoard: BoardConfig | undefined;

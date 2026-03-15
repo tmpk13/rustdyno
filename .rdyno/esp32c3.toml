@@ -17,3 +17,41 @@ enabled = true
 [[rtt.channels]]
 up   = 0
 name = "Terminal"
+
+# ---------------------------------------------------------------------------
+# [new_project] — files and settings scaffolded when creating a new project
+# ---------------------------------------------------------------------------
+[new_project]
+runner = "probe-rs run --chip esp32c3"
+
+[new_project.dependencies]
+"esp-backtrace" = { version = "0.14", features = ["esp32c3", "exception-handler", "panic-handler", "println"] }
+"esp-hal"       = { version = "0.22", features = ["esp32c3"] }
+"esp-println"   = { version = "0.12", features = ["esp32c3", "log"] }
+
+[[new_project.files]]
+path    = "src/main.rs"
+content = """
+#![no_std]
+#![no_main]
+
+use esp_backtrace as _;
+use esp_hal::prelude::*;
+use esp_println::println;
+
+#[entry]
+fn main() -> ! {
+    println!(\"Hello from ESP32-C3!\");
+    loop {}
+}
+"""
+
+[[new_project.files]]
+path    = ".cargo/config.toml"
+content = """
+[target.riscv32imc-unknown-none-elf]
+runner = "probe-rs run --chip esp32c3"
+
+[build]
+target = "riscv32imc-unknown-none-elf"
+"""
