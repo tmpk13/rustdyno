@@ -1,110 +1,378 @@
-body { padding: 10px; font-family: var(--vscode-font-family); color: var(--vscode-foreground); }
+body {
+    padding: 10px;
+    font-family: var(--vscode-font-family);
+    color: var(--vscode-foreground);
+}
+
+.action-button {
+    min-height: 5rem;
+}
+
 button {
-  width: 100%;
-  padding: 8px;
-  margin: 4px 0;
-  cursor: pointer;
-  background: var(--vscode-button-background);
-  color: var(--vscode-button-foreground);
-  border: none;
-  border-radius: 4px;
+    min-height: 2rem;
+    width: 100%;
+    padding: 8px;
+    margin: 4px 0;
+    cursor: pointer;
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border: none;
+    border-radius: 4px;
 }
-button:hover { background: var(--vscode-button-hoverBackground); }
+
+button:hover {
+    background: var(--vscode-button-hoverBackground);
+}
+
 select {
-  width: 100%;
-  padding: 6px;
-  margin: 4px 0 8px;
-  background: var(--vscode-dropdown-background);
-  color: var(--vscode-dropdown-foreground);
-  border: 1px solid var(--vscode-dropdown-border);
-  border-radius: 4px;
-  font-family: var(--vscode-font-family);
-  font-size: var(--vscode-font-size);
-  cursor: pointer;
+    width: 100%;
+    padding: 6px;
+    margin: 4px 0 8px;
+    background: var(--vscode-dropdown-background);
+    color: var(--vscode-dropdown-foreground);
+    border: 1px solid var(--vscode-dropdown-border);
+    border-radius: 4px;
+    font-family: var(--vscode-font-family);
+    font-size: var(--vscode-font-size);
+    cursor: pointer;
 }
-.label { font-size: 12px; opacity: 0.7; margin-bottom: 4px; }
-.active-board { font-size: 12px; opacity: 0.7; margin-bottom: 8px; font-style: italic; }
-.section-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
-.icon-btn { width: auto; padding: 2px 8px; margin: 0; font-size: 12px; }
+
+.label {
+    font-size: 12px;
+    opacity: 0.7;
+    margin-bottom: 4px;
+}
+
+.active-board {
+    font-size: 12px;
+    opacity: 0.7;
+    margin-bottom: 8px;
+    font-style: italic;
+}
+
+.section-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.icon-btn {
+    width: auto;
+    padding: 2px 8px;
+    margin: 0;
+    font-size: 12px;
+}
+
 .file-list {
-  max-height: 180px;
-  overflow-y: auto;
-  margin-bottom: 8px;
-  border: 1px solid var(--vscode-dropdown-border);
-  border-radius: 4px;
+    max-height: 180px;
+    overflow-y: auto;
+    margin-bottom: 8px;
+    border: 1px solid var(--vscode-dropdown-border);
+    border-radius: 4px;
 }
+
 .file-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 4px 8px;
-  cursor: pointer;
-  user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 8px;
+    cursor: pointer;
+    user-select: none;
 }
-.file-item:hover { background: var(--vscode-list-hoverBackground); }
+
+.file-item:hover {
+    background: var(--vscode-list-hoverBackground);
+}
+
 .file-item.active {
-  background: var(--vscode-list-activeSelectionBackground);
-  color: var(--vscode-list-activeSelectionForeground);
+    background: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-list-activeSelectionForeground);
 }
-.file-item.dragging { opacity: 0.4; }
-.file-item.drag-over { border-top: 2px solid var(--vscode-focusBorder); }
-.file-name { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-.hidden-item { opacity: 0.55; cursor: default; }
-.file-empty { font-size: 12px; opacity: 0.5; padding: 8px; font-style: italic; }
+
+.file-item.dragging {
+    opacity: 0.4;
+}
+
+.file-item.drag-over {
+    border-top: 2px solid var(--vscode-focusBorder);
+}
+
+.file-name {
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+
+.hidden-item {
+    opacity: 0.55;
+    cursor: default;
+}
+
+.file-empty {
+    font-size: 12px;
+    opacity: 0.5;
+    padding: 8px;
+    font-style: italic;
+}
+
 .remove-btn {
-  display: none;
-  width: auto;
-  padding: 1px 5px;
-  margin: 0 0 0 4px;
-  font-size: 11px;
-  line-height: 1.4;
-  background: transparent;
-  color: var(--vscode-foreground);
-  opacity: 0.55;
-  border-radius: 3px;
-  flex-shrink: 0;
+    visibility: hidden;
+    width: auto;
+    padding: 1px 5px;
+    margin: 0 0 0 4px;
+    font-size: 11px;
+    line-height: 1.4;
+    background: transparent;
+    color: var(--vscode-foreground);
+    opacity: 0.55;
+    border-radius: 3px;
+    flex-shrink: 0;
 }
-.file-item:hover .remove-btn { display: block; }
-.remove-btn:hover { opacity: 1 !important; background: var(--vscode-toolbar-hoverBackground) !important; }
-@keyframes spin { to { transform: rotate(360deg); } }
-button { position: relative; }
-button.loading, button.done { cursor: default; opacity: 0.7; }
-button.loading .btn-label, button.done .btn-label { visibility: hidden; }
+
+.file-item:hover .remove-btn {
+    visibility: visible;
+}
+
+.remove-btn:hover {
+    opacity: 1 !important;
+    background: var(--vscode-toolbar-hoverBackground) !important;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+button {
+    position: relative;
+}
+
+button.loading,
+button.done {
+    cursor: default;
+    opacity: 0.7;
+}
+
+button.loading .btn-label,
+button.done .btn-label {
+    visibility: hidden;
+}
+
 button.loading::after {
-  content: '';
-  position: absolute;
-  top: 50%; left: 50%;
-  width: 14px; height: 14px;
-  margin: -7px 0 0 -7px;
-  border: 2px solid transparent;
-  border-top-color: currentColor;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: -7px 0 0 -7px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
 }
+
 .btn-check {
-  display: none;
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 16px; height: 14px;
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 16px;
+    height: 14px;
 }
-button.done .btn-check { display: block; }
-.split-group { display: flex; width: 100%; margin: 4px 0; position: relative; }
-.split-main { flex: 1; margin: 0; width: auto; border-radius: 4px 0 0 4px; }
+
+button.done .btn-check {
+    display: block;
+}
+
+.split-group {
+    display: flex;
+    width: 100%;
+    margin: 4px 0;
+    position: relative;
+}
+
+.split-main {
+    flex: 1;
+    margin: 0;
+    padding: 0;
+    width: auto;
+    border-radius: 4px 0 0 4px;
+}
+
 .split-drop {
-  flex-shrink: 0; width: 26px; margin: 0; padding: 0; width: auto;
-  border-radius: 0 4px 4px 0;
-  border-left: 1px solid rgba(255,255,255,0.12);
-  font-size: 10px;
+    flex-shrink: 0;
+    width: 10%;
+    margin: 0;
+    padding: 0;
+    border-radius: 0 4px 4px 0;
+    border-left: 0px solid rgba(255, 255, 255, 0.12);
+    font-size: 10px;
 }
+
 .drop-menu {
-  display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 100;
-  margin-top: 2px; max-height: 160px; overflow-y: auto;
-  background: var(--vscode-dropdown-background);
-  border: 1px solid var(--vscode-dropdown-border);
-  border-radius: 4px;
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 10%;
+    z-index: 100;
+    margin-top: 2px;
+    max-height: 160px;
+    overflow-y: auto;
+    background: var(--vscode-dropdown-background);
+    border: 1px solid var(--vscode-dropdown-border);
+    border-radius: 4px;
 }
-.drop-menu.open { display: block; }
-.drop-item { padding: 5px 8px; font-size: 12px; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.drop-item:hover { background: var(--vscode-list-hoverBackground); }
-.drop-item.drop-active { background: var(--vscode-list-activeSelectionBackground); color: var(--vscode-list-activeSelectionForeground); }
+
+.drop-menu.open {
+    display: block;
+}
+
+.drop-item {
+    padding: 5px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.drop-item:hover {
+    background: var(--vscode-list-hoverBackground);
+}
+
+.drop-item.drop-active {
+    background: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-list-activeSelectionForeground);
+}
+
+.split-drop img.drop-icon {
+    width: 12px;
+    height: 12px;
+    display: block;
+    transition: transform 0.2s ease;
+}
+
+.split-drop.open img.drop-icon {
+    transform: rotate(-180deg);
+}
+
+.btn-run-icon {
+    width: 14px;
+    height: 14px;
+    display: block;
+}
+
+.btn-check-icon {
+    width: 16px;
+    height: 14px;
+    display: block;
+}
+
+.icon-svg {
+    width: 14px;
+    height: 14px;
+    display: block;
+}
+
+.config-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 12px;
+    user-select: none;
+}
+
+.config-header:hover {
+    background: var(--vscode-list-hoverBackground);
+}
+
+.config-arrow {
+    width: 10px;
+    height: 10px;
+    display: block;
+    flex-shrink: 0;
+    opacity: 0.6;
+    transform: rotate(-90deg);
+    transition: transform 0.2s ease;
+}
+
+.config-arrow.open {
+    transform: rotate(0deg);
+}
+
+.config-summary {
+    opacity: 0.75;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+
+.probe-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--vscode-foreground);
+    opacity: 0.2;
+}
+
+.probe-dot.connected {
+    background: #4caf50;
+    opacity: 1;
+}
+
+.probe-dot.disconnected {
+    background: var(--vscode-foreground);
+    opacity: 0.25;
+}
+
+.dyno-logo {
+    display: block;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.btn-tooltip {
+    position: fixed;
+    background: var(--vscode-editorHoverWidget-background);
+    color: var(--vscode-editorHoverWidget-foreground);
+    border: 1px solid var(--vscode-editorHoverWidget-border);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: var(--vscode-editor-font-family, monospace);
+    max-width: 90vw;
+    word-break: break-all;
+    pointer-events: none;
+    z-index: 1000;
+    display: none;
+}
+
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+.btn-icon svg {
+    width: 14px;
+    height: 14px;
+    display: block;
+}
+
+button.loading .btn-icon,
+button.done .btn-icon {
+    visibility: hidden;
+}

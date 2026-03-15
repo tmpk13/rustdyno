@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { getActiveBoard } from "./boardConfig";
+import { getActiveBoard, getEffectivePort } from "./boardConfig";
 import { spawn } from "child_process";
 
 let rttTerminal: vscode.Terminal | undefined;
@@ -17,5 +17,7 @@ export function startRtt(): void {
   rttTerminal?.dispose();
   rttTerminal = vscode.window.createTerminal("RTT");
   rttTerminal.show();
-  rttTerminal.sendText(`${probePath} attach --chip ${board.board.chip} --protocol ${board.probe.protocol}`);
+  const port = getEffectivePort();
+  const portFlag = port ? ` --probe ${port}` : "";
+  rttTerminal.sendText(`${probePath} attach --chip ${board.board.chip} --protocol ${board.probe.protocol}${portFlag}`);
 }

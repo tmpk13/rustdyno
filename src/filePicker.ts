@@ -15,8 +15,8 @@ let activeFile: string | undefined;
 function getPickerConfigPath(): string | undefined {
   const wsRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   if (!wsRoot) { return undefined; }
-  const configDir = vscode.workspace.getConfiguration("embeddedRust").get<string>("boardConfigDir", ".boards");
-  return path.join(wsRoot, configDir, "picker.toml");
+  const configDir = vscode.workspace.getConfiguration("embeddedRust").get<string>("boardConfigDir", ".rdyno");
+  return path.join(wsRoot, configDir, "rdyno.toml");
 }
 
 function loadConfig(): PickerConfig {

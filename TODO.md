@@ -1,8 +1,26 @@
 <!-- for grabbing new checks
-- [ ]
+- [ ] 
  -->
 
 
 - [ ] Add port selection
 - [ ] Bind loading on panel buttons to something
-- [ ] Add run commands
+- [ ] Add run commands option for toml
+- [x] Make the layout not wobble on hover
+- [x] Make default board get selected
+- [ ] Rotate the dropdown icon
+- [ ] Add SVG icons
+    - [x] Dropdown
+    - [ ] Run
+    - [ ] Stop
+    - [ ] Debug
+- [x] Add one menu for selecting config options
+- [ ] have config options in toml
+- [x] Add Port name overflow handling
+- [ ] Port should be saved as default in the .boards file
+- [ ] Make .boards folder a different name, and picker.toml
+- [ ] Toggle button for run button in status bar
+- [ ] Poll serial device state to see if still connected, while not doing a command
+- [ ] On hover for 2 sec show the command for build/flash
+- [ ] Generate new projects
+- [ ] Add ability to name devices
