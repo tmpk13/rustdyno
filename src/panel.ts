@@ -1,9 +1,20 @@
 import * as vscode from "vscode";
 import * as path from "path";
+import * as fs from "fs";
 import { exec } from "child_process";
 import { autoSelectBoard, getActiveBoard, getActiveBoardFile, getEffectivePort, getPortOverride, listBoards, selectBoardByFile, setDefaultBoardFile, setPortOverride } from "./boardConfig";
 import { getActiveFile, getCachedFiles, getHiddenFiles, hideFile, openFile, refreshFiles, reorderFiles, unhideFile } from "./filePicker";
 import { fetchLibraryList, fetchAndSaveBoard, isBoardCached, isBoardInWorkspace, copyBoardToWorkspace, removeBoard } from "./boardLibrary";
+
+function loadHtml(ext: vscode.ExtensionContext, webview: vscode.Webview, htmlFile: string, jsFile: string): string {
+    const mediaPath = vscode.Uri.joinPath(ext.extensionUri, "media");
+    const cssUri = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, "panel.css"));
+    const jsUri = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, jsFile));
+    const htmlPath = path.join(ext.extensionUri.fsPath, "media", htmlFile);
+    return fs.readFileSync(htmlPath, "utf8")
+        .replace("{{CSS_URI}}", cssUri.toString())
+        .replace("{{JS_URI}}", jsUri.toString());
+}
 
 export class BoardPanelProvider implements vscode.WebviewViewProvider {
     public static readonly viewType = "embeddedRust.panel";
