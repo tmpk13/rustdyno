@@ -29,6 +29,31 @@ panic-rtt-target = "0.2"
 rtt-target       = "0.6"
 
 [[new_project.files]]
+path    = "Embed.toml"
+content = """
+[default.general]
+chip = \"nrf52833_xxAA\"
+
+[default.reset]
+halt_afterwards = false
+
+[default.rtt]
+enabled = true
+
+[default.gdb]
+enabled = false
+"""
+
+[[new_project.files]]
+path    = "memory.x"
+content = """
+MEMORY {
+    FLASH : ORIGIN = 0x00000000, LENGTH = 512K
+    RAM   : ORIGIN = 0x20000000, LENGTH = 128K
+}
+"""
+
+[[new_project.files]]
 path    = "src/main.rs"
 content = """
 #![no_std]

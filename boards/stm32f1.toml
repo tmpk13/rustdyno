@@ -48,6 +48,22 @@ fn main() -> ! {
 """
 
 [[new_project.files]]
+path    = "Embed.toml"
+content = """
+[default.general]
+chip = \"STM32F103C8Tx\"
+
+[default.reset]
+halt_afterwards = false
+
+[default.rtt]
+enabled = true
+
+[default.gdb]
+enabled = false
+"""
+
+[[new_project.files]]
 path    = "memory.x"
 content = """
 MEMORY {
