@@ -1,0 +1,68 @@
+[board]
+name   = "STM32F103 Blue Pill"
+chip   = "STM32F103C8Tx"
+target = "thumbv7m-none-eabi"
+
+[probe]
+protocol = "Swd"
+speed    = 4000          # kHz
+
+[flash]
+restore_unwritten = false
+halt_afterwards   = false
+
+[rtt]
+enabled  = true
+channels = [{ up = 0, name = "Terminal" }]
+
+# ---------------------------------------------------------------------------
+# [new_project] — files and settings scaffolded when creating a new project
+# ---------------------------------------------------------------------------
+[new_project]
+runner = "probe-rs run --chip STM32F103C8Tx"
+
+[new_project.dependencies]
+cortex-m     = { version = "0.7.7", features = ["critical-section-single-core"] }
+cortex-m-rt  = "0.7.5"
+nb           = "1.1"
+panic-halt   = "1.0"
+rtt-target   = "0.6"
+stm32f1xx-hal = { version = "0.11", features = ["stm32f103", "rt"] }
+
+[[new_project.files]]
+path    = "src/main.rs"
+content = """
+#![no_std]
+#![no_main]
+
+use cortex_m_rt::entry;
+use panic_halt as _;
+use rtt_target::{rtt_init_print, rprintln};
+
+#[entry]
+fn main() -> ! {
+    rtt_init_print!();
+    rprintln!(\"Hello from STM32F103!\");
+    loop {}
+}
+"""
+
+[[new_project.files]]
+path    = "memory.x"
+content = """
+MEMORY {
+    FLASH : ORIGIN = 0x08000000, LENGTH = 64K
+    RAM   : ORIGIN = 0x20000000, LENGTH = 20K
+}
+"""
+
+[[new_project.files]]
+path    = ".cargo/config.toml"
+content = """
+[target.thumbv7m-none-eabi]
+runner     = \"probe-rs run --chip STM32F103C8Tx\"
+rustflags  = [\"-C\", \"link-arg=-Tlink.x\", \"-C\", \"link-arg=-Tmemory.x\"]
+
+[build]
+target = \"thumbv7m-none-eabi\"
+"""

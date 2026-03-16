@@ -1,0 +1,57 @@
+[board]
+name   = "BBC micro:bit v2"
+chip   = "nRF52833_xxAA"
+target = "thumbv7em-none-eabihf"
+
+[probe]
+protocol = "Cmsis-Dap"
+speed    = 4000          # kHz
+
+[flash]
+restore_unwritten = false
+halt_afterwards   = false
+
+[rtt]
+enabled  = true
+channels = [{ up = 0, name = "Terminal" }]
+
+# ---------------------------------------------------------------------------
+# [new_project] — files and settings scaffolded when creating a new project
+# ---------------------------------------------------------------------------
+[new_project]
+runner = "probe-rs run --chip nRF52833_xxAA"
+
+[new_project.dependencies]
+cortex-m         = { version = "0.7", features = ["inline-asm", "critical-section-single-core"] }
+cortex-m-rt      = "0.7"
+microbit-v2      = "0.16"
+panic-rtt-target = "0.2"
+rtt-target       = "0.6"
+
+[[new_project.files]]
+path    = "src/main.rs"
+content = """
+#![no_std]
+#![no_main]
+
+use cortex_m_rt::entry;
+use panic_rtt_target as _;
+use rtt_target::{rtt_init_print, rprintln};
+
+#[entry]
+fn main() -> ! {
+    rtt_init_print!();
+    rprintln!(\"Hello from micro:bit v2!\");
+    loop {}
+}
+"""
+
+[[new_project.files]]
+path    = ".cargo/config.toml"
+content = """
+[target.thumbv7em-none-eabihf]
+runner = \"probe-rs run --chip nRF52833_xxAA\"
+
+[build]
+target = \"thumbv7em-none-eabihf\"
+"""
