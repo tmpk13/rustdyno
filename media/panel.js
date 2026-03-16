@@ -501,9 +501,18 @@ window.addEventListener('message', e => {
         if (valEl) { valEl.textContent = cur ? (ports.find(p => p.id === cur)?.label ?? cur) : 'auto'; }
     } else if (msg.command === 'probeStatus') {
         const dot = document.getElementById('probeDot');
-        if (!dot) { return; }
-        dot.className = 'probe-dot ' + (msg.data.connected ? 'connected' : 'disconnected');
-        dot.title = msg.data.connected ? 'Probe connected' : 'No probe detected';
+        if (dot) {
+            dot.className = 'probe-dot ' + (msg.data.connected ? 'connected' : 'disconnected');
+            dot.title = msg.data.connected ? 'Probe connected' : 'No probe detected';
+        }
+        if (!window.CURRENT_PORT) {
+            const first = msg.data.probes?.[0];
+            const autoText = first ? `auto · ${first.label}` : 'auto';
+            const valEl = document.getElementById('cs-val-port');
+            if (valEl) { valEl.textContent = autoText; }
+            const summary = document.getElementById('configSummary');
+            if (summary && STATE) { summary.textContent = `${STATE.activeName} \u00b7 ${autoText}`; }
+        }
     }
 });
 

@@ -10,7 +10,7 @@ import { BoardPanelProvider, NewProjectPanelProvider, BoardLibraryPanelProvider 
 
 export function activate(ctx: vscode.ExtensionContext) {
   initBoardLibrary(ctx.globalStorageUri.fsPath);
-  ensureBoardDir();
+  ensureBoardDir(ctx.extensionUri.fsPath);
   ctx.subscriptions.push(
     vscode.commands.registerCommand("rdyno.selectBoard", selectBoard),
     vscode.commands.registerCommand("rdyno.build", build),

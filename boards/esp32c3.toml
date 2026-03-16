@@ -3,8 +3,8 @@ name   = "ESP32-C3 (ESP-IDF)"
 chip   = "esp32c3"
 target = "riscv32imc-esp-espidf"
 
-[flash]
-runner = "espflash flash --monitor"
+[run]
+command = "espflash flash --monitor"
 
 # ---------------------------------------------------------------------------
 # [new_project] — files and settings scaffolded when creating a new project

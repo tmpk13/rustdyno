@@ -14,7 +14,7 @@ export async function flash(): Promise<void> {
 
   if (board.run?.command) {
     terminal.sendText(board.run.command);
-  } else {
+  } else if (board.probe) {
     // Resolve ELF — convention: target/<target>/release/<crate-name>
     terminal.sendText(
       `${probePath} run --chip ${board.board.chip}` +
@@ -24,5 +24,7 @@ export async function flash(): Promise<void> {
       ` target/${board.board.target}/release/<CRATE_NAME>`
       // TODO: resolve crate name from Cargo.toml
     );
+  } else {
+    vscode.window.showErrorMessage("No flash command configured for this board. Add a [run] command or [probe] section to the board config.");
   }
 }

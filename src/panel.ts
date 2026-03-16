@@ -167,14 +167,14 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
         const probePath = vscode.workspace.getConfiguration("rdyno").get<string>("probersPath", "probe-rs");
         const poll = () => {
             exec(`${probePath} list`, (_err, stdout) => {
-                const probeIds: string[] = [];
+                const probes: { id: string; label: string }[] = [];
                 for (const line of stdout.split("\n")) {
-                    const m = line.match(/\[\d+\]:\s*.+?\s*--\s*([0-9a-fA-F]{4}:[0-9a-fA-F]{4}:\S+)/);
-                    if (m) { probeIds.push(m[1]); }
+                    const m = line.match(/\[\d+\]:\s*(.+?)\s*--\s*([0-9a-fA-F]{4}:[0-9a-fA-F]{4}:\S+)/);
+                    if (m) { probes.push({ id: m[2], label: m[1].trim() }); }
                 }
                 const port = getEffectivePort();
-                const connected = port ? probeIds.includes(port) : probeIds.length > 0;
-                view.webview.postMessage({ command: "probeStatus", data: { connected, probeIds } });
+                const connected = port ? probes.some(p => p.id === port) : probes.length > 0;
+                view.webview.postMessage({ command: "probeStatus", data: { connected, probes } });
             });
         };
         poll();
@@ -203,9 +203,11 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
             case "flash":
                 if (!board) { return `${probePath} run ...`; }
                 if (board.run?.command) { return board.run.command; }
+                if (!board.probe) { return "(no flash command configured)"; }
                 return `${probePath} run --chip ${board.board.chip} --protocol ${board.probe.protocol} --speed ${board.probe.speed}${portFlag} target/${board.board.target}/release/<crate>`;
             case "rtt":
                 if (!board) { return `${probePath} attach ...`; }
+                if (!board.probe) { return "(RTT requires [probe] section)"; }
                 return `${probePath} attach --chip ${board.board.chip} --protocol ${board.probe.protocol}${portFlag}`;
             default:
                 return cmd;

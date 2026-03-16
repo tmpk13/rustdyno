@@ -40,7 +40,6 @@
 - [ ] Button that asks to install probe-rs if the user doesn't have it
     - [ ] `probe-rs complete install` on linux 
     - [ ] Read `bin` file from `Cargo.toml`
-    - [ ] Use dev container
     - [ ] rust-toolchain.toml
 
 - [x] Toggle button that turns on edit mode where every element can be toggled and rearranged
@@ -78,6 +77,9 @@
 
 - [ ] Don't use swd by default on esp check others
 - [ ] poll for serial when auto is the port selection show the board that will be used name
+
+- [ ] Verify the configs for new project are being used
+- [ ] Remove board/ from boards
 
 # ?
 - [ ] integrate installer for board toolchains??

@@ -19,5 +19,9 @@ export function startRtt(): void {
   rttTerminal.show();
   const port = getEffectivePort();
   const portFlag = port ? ` --probe ${port}` : "";
+  if (!board.probe) {
+    vscode.window.showErrorMessage("RTT requires a [probe] section in the board config.");
+    return;
+  }
   rttTerminal.sendText(`${probePath} attach --chip ${board.board.chip} --protocol ${board.probe.protocol}${portFlag}`);
 }

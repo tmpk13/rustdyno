@@ -13,7 +13,9 @@ export interface NewProjectConfig {
   /** Files to create when generating a new project from this board config */
   files?: NewProjectFile[];
   /** Optional cargo dependencies to add to Cargo.toml */
-  dependencies?: Record<string, string>;
+  dependencies?: Record<string, unknown>;
+  /** Optional cargo build-dependencies to add to Cargo.toml */
+  "build-dependencies"?: Record<string, unknown>;
   /** Optional .cargo/config.toml runner line */
   runner?: string;
 }
@@ -44,27 +46,14 @@ let activeBoardFile: string | undefined;
 let activeBoardPath: string | undefined;
 let portOverride: string | undefined;
 
-const DEFAULT_BOARD_TOML = `[board]
-name   = "ESP32-C3"
-chip   = "esp32c3"
-target = "riscv32imc-unknown-none-elf"
-
-[probe]
-protocol = "Swd"
-speed    = 4000   # kHz
-
-[flash]
-
-[rtt]
-enabled  = true
-channels = [{ up = 0, name = "Terminal" }]
-`;
-
-export function ensureBoardDir(): void {
+export function ensureBoardDir(extensionPath: string): void {
   const dir = getBoardDir();
   if (fs.existsSync(dir)) { return; }
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, "esp32c3.toml"), DEFAULT_BOARD_TOML, "utf-8");
+  const src = path.join(extensionPath, "boards", "esp32c3.toml");
+  if (fs.existsSync(src)) {
+    fs.copyFileSync(src, path.join(dir, "esp32c3.toml"));
+  }
 }
 
 function getBoardDir(): string {
