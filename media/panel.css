@@ -532,6 +532,81 @@ button.done .btn-check {
     opacity: 0.25;
 }
 
+/* Edit mode toggle button row */
+#editHeader {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 4px;
+}
+
+.edit-toggle-btn {
+    opacity: 0.5;
+    font-size: 14px;
+}
+
+.edit-toggle-btn:hover {
+    opacity: 1 !important;
+}
+
+/* Edit bar shown at top of each section in edit mode */
+.edit-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 6px;
+    margin-bottom: 4px;
+    background: var(--vscode-editorGroupHeader-tabsBackground, rgba(128, 128, 128, 0.12));
+    border: 1px solid var(--vscode-focusBorder);
+    border-radius: 4px;
+    cursor: grab;
+    user-select: none;
+    font-size: 12px;
+}
+
+.edit-handle {
+    opacity: 0.6;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.edit-section-name {
+    flex: 1;
+    font-weight: 600;
+    opacity: 0.85;
+}
+
+.edit-eye-btn {
+    width: auto;
+    min-height: auto;
+    height: 1.6rem;
+    padding: 0 8px;
+    margin: 0;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+/* Dim section content in edit mode so normal interactions are visually suppressed */
+body.edit-mode .panel-section > *:not(.edit-bar) {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+/* Further dim sections marked as hidden in edit mode */
+.panel-section.edit-section-hidden > *:not(.edit-bar) {
+    opacity: 0.2;
+}
+
+/* Drop target indicator when dragging a section */
+.panel-section.drag-over-section {
+    border-top: 2px solid var(--vscode-focusBorder);
+    padding-top: 2px;
+}
+
+/* Section being dragged */
+.panel-section.section-dragging {
+    opacity: 0.45;
+}
+
 /* Logo image at the top of the panel */
 .dyno-logo {
     display: block;

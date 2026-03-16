@@ -7,6 +7,161 @@ let _isHiddenOpen = false;
 let _firstRender = true;
 let _uris = null;
 
+// --- Layout / edit mode ---
+
+const SECTION_LABELS = { files: 'Files', actions: 'Actions', rtt: 'RTT', target: 'Target', config: 'Config' };
+const DEFAULT_ORDER = ['files', 'actions', 'rtt', 'target', 'config'];
+
+let _editMode = false;
+let _layout = { order: [...DEFAULT_ORDER], hidden: [] };
+let _dragSectionId = null;
+
+function applyLayout() {
+    const container = document.getElementById('sectionsContainer');
+    // Reorder sections to match _layout.order
+    _layout.order.forEach(id => {
+        const el = container.querySelector(`.panel-section[data-section="${id}"]`);
+        if (el) { container.appendChild(el); }
+    });
+    // Apply visibility (only when not in edit mode)
+    if (!_editMode) {
+        container.querySelectorAll('.panel-section').forEach(el => {
+            const id = el.dataset.section;
+            el.style.display = _layout.hidden.includes(id) ? 'none' : '';
+        });
+    }
+}
+
+function toggleEditMode() {
+    _editMode = !_editMode;
+    document.body.classList.toggle('edit-mode', _editMode);
+    const btn = document.getElementById('editToggleBtn');
+    btn.style.opacity = _editMode ? '1' : '0.5';
+    btn.title = _editMode ? 'Done editing layout' : 'Edit panel layout';
+    if (_editMode) {
+        enterEditMode();
+    } else {
+        exitEditMode();
+    }
+}
+
+function enterEditMode() {
+    const container = document.getElementById('sectionsContainer');
+    container.querySelectorAll('.panel-section').forEach(el => {
+        const id = el.dataset.section;
+        // Show all sections while editing
+        el.style.display = '';
+        el.draggable = true;
+
+        const isHidden = _layout.hidden.includes(id);
+        el.classList.toggle('edit-section-hidden', isHidden);
+
+        // Insert edit bar at top of section
+        const bar = document.createElement('div');
+        bar.className = 'edit-bar';
+        const eyeBtn = document.createElement('button');
+        eyeBtn.className = 'edit-eye-btn';
+        eyeBtn.textContent = isHidden ? '○' : '●';
+        eyeBtn.title = isHidden ? 'Show section' : 'Hide section';
+        eyeBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            toggleSectionVisibility(id, eyeBtn);
+        });
+        const handle = document.createElement('span');
+        handle.className = 'edit-handle';
+        handle.textContent = '☰';
+        const nameEl = document.createElement('span');
+        nameEl.className = 'edit-section-name';
+        nameEl.textContent = SECTION_LABELS[id] || id;
+        bar.appendChild(handle);
+        bar.appendChild(nameEl);
+        bar.appendChild(eyeBtn);
+        el.insertBefore(bar, el.firstChild);
+
+        el.addEventListener('dragstart', onSectionDragStart);
+        el.addEventListener('dragend', onSectionDragEnd);
+        el.addEventListener('dragover', onSectionDragOver);
+        el.addEventListener('drop', onSectionDrop);
+    });
+}
+
+function exitEditMode() {
+    const container = document.getElementById('sectionsContainer');
+    // Capture current DOM order
+    _layout.order = [...container.querySelectorAll('.panel-section')].map(el => el.dataset.section);
+
+    container.querySelectorAll('.panel-section').forEach(el => {
+        el.draggable = false;
+        el.classList.remove('edit-section-hidden', 'drag-over-section', 'section-dragging');
+
+        const bar = el.querySelector('.edit-bar');
+        if (bar) { bar.remove(); }
+
+        el.removeEventListener('dragstart', onSectionDragStart);
+        el.removeEventListener('dragend', onSectionDragEnd);
+        el.removeEventListener('dragover', onSectionDragOver);
+        el.removeEventListener('drop', onSectionDrop);
+
+        // Apply visibility
+        const id = el.dataset.section;
+        el.style.display = _layout.hidden.includes(id) ? 'none' : '';
+    });
+
+    send('saveLayout', _layout);
+}
+
+function toggleSectionVisibility(id, eyeBtn) {
+    const idx = _layout.hidden.indexOf(id);
+    const el = document.querySelector(`.panel-section[data-section="${id}"]`);
+    if (idx >= 0) {
+        _layout.hidden.splice(idx, 1);
+        el.classList.remove('edit-section-hidden');
+        eyeBtn.textContent = '●';
+        eyeBtn.title = 'Hide section';
+    } else {
+        _layout.hidden.push(id);
+        el.classList.add('edit-section-hidden');
+        eyeBtn.textContent = '○';
+        eyeBtn.title = 'Show section';
+    }
+}
+
+function onSectionDragStart(e) {
+    _dragSectionId = e.currentTarget.dataset.section;
+    e.dataTransfer.effectAllowed = 'move';
+    setTimeout(() => e.currentTarget && e.currentTarget.classList.add('section-dragging'), 0);
+}
+
+function onSectionDragEnd(e) {
+    e.currentTarget.classList.remove('section-dragging');
+    document.querySelectorAll('.panel-section').forEach(el => el.classList.remove('drag-over-section'));
+}
+
+function onSectionDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    document.querySelectorAll('.panel-section').forEach(el => el.classList.remove('drag-over-section'));
+    const target = e.currentTarget;
+    if (target.dataset.section !== _dragSectionId) {
+        target.classList.add('drag-over-section');
+    }
+}
+
+function onSectionDrop(e) {
+    e.preventDefault();
+    const target = e.currentTarget;
+    const srcId = _dragSectionId;
+    const tgtId = target.dataset.section;
+    if (!srcId || srcId === tgtId) { return; }
+    const container = target.parentElement;
+    const srcEl = container.querySelector(`.panel-section[data-section="${srcId}"]`);
+    container.insertBefore(srcEl, target);
+    document.querySelectorAll('.panel-section').forEach(el => el.classList.remove('drag-over-section'));
+    _dragSectionId = null;
+}
+
+// --- End layout / edit mode ---
+
 function safeHtml(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
@@ -194,13 +349,19 @@ function makeActionBtn(cmd, label, files, pickedFile, uris, cmdPreviews) {
 function render(state) {
     STATE = state;
     const { files, hiddenFiles, pickedFile, boards, activeBoardFile, activeName,
-        effectivePort, portIsFromConfig, portOverride, cmdPreviews, uris } = state;
+        effectivePort, portIsFromConfig, portOverride, cmdPreviews, uris, layout } = state;
 
     const isFirst = _firstRender;
     if (isFirst) {
         _firstRender = false;
         window.CURRENT_PORT = portOverride;
         setUris(uris);
+        // Load saved layout
+        if (layout) {
+            if (layout.order && layout.order.length) { _layout.order = layout.order; }
+            if (layout.hidden) { _layout.hidden = layout.hidden; }
+        }
+        applyLayout();
     }
 
     // File list

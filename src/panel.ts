@@ -76,6 +76,9 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
                 case "reorderFiles":
                     reorderFiles(msg.data);
                     break;
+                case "saveLayout":
+                    this.ext.workspaceState.update("panelLayout", msg.data);
+                    break;
                 case "setPort":
                     setPortOverride(msg.data || undefined);
                     this.ext.workspaceState.update("portOverride", msg.data || undefined);
@@ -141,6 +144,7 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
                     eye: uri("imgs/eye.svg"),
                     eyeSlash: uri("imgs/eye-slash.svg"),
                 },
+                layout: this.ext.workspaceState.get("panelLayout") ?? null,
             },
         });
     }
