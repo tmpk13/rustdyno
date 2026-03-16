@@ -35,6 +35,8 @@
 - [ ] Make it flip orientation when it is wider than it is high
 - [ ] Board adder tool page with checkboxes to enable/disable the items. Typing in the edit field enables it 
 - [ ] Add clear button for searching boards 
+- [ ] Add remove all local button
+- [ ] Add setting for disable remote repo
 
 # ?
 - [ ] integrate installer for board toolchains??

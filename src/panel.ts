@@ -3,7 +3,7 @@ import * as path from "path";
 import { exec } from "child_process";
 import { autoSelectBoard, getActiveBoard, getActiveBoardFile, getEffectivePort, getPortOverride, listBoards, selectBoardByFile, setDefaultBoardFile, setPortOverride } from "./boardConfig";
 import { getActiveFile, getCachedFiles, getHiddenFiles, hideFile, openFile, refreshFiles, reorderFiles, unhideFile } from "./filePicker";
-import { fetchLibraryList, fetchAndSaveBoard, isBoardInstalled, removeBoard } from "./boardLibrary";
+import { fetchLibraryList, fetchAndSaveBoard, isBoardCached, isBoardInWorkspace, copyBoardToWorkspace, removeBoard } from "./boardLibrary";
 
 export class BoardPanelProvider implements vscode.WebviewViewProvider {
     public static readonly viewType = "embeddedRust.panel";
@@ -28,8 +28,9 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
 
         if (!getActiveBoard()) { autoSelectBoard(); }
         view.webview.html = this.getHtml();
+        this.sendState();
 
-        refreshFiles().then(() => { view.webview.html = this.getHtml(); });
+        refreshFiles().then(() => { this.sendState(); });
 
         this.startPolling(view);
         view.onDidDispose(() => {
@@ -41,11 +42,11 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
                 case "selectBoard":
                     selectBoardByFile(msg.data);
                     setDefaultBoardFile(msg.data);
-                    view.webview.html = this.getHtml();
+                    this.sendState();
                     break;
                 case "selectFile": {
                     openFile(msg.data);
-                    view.webview.html = this.getHtml();
+                    this.sendState();
                     const wsRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
                     if (wsRoot) {
                         const uri = vscode.Uri.file(path.join(wsRoot, msg.data));
@@ -55,11 +56,11 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
                 }
                 case "hideFile":
                     hideFile(msg.data);
-                    view.webview.html = this.getHtml();
+                    this.sendState();
                     break;
                 case "unhideFile":
                     unhideFile(msg.data);
-                    view.webview.html = this.getHtml();
+                    this.sendState();
                     break;
                 case "reorderFiles":
                     reorderFiles(msg.data);
@@ -81,14 +82,14 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
                     break;
                 }
                 case "refresh":
-                    refreshFiles().then(() => { view.webview.html = this.getHtml(); });
+                    refreshFiles().then(() => { this.sendState(); });
                     break;
                 case "build": vscode.commands.executeCommand("embeddedRust.build"); break;
                 case "flash": vscode.commands.executeCommand("embeddedRust.flash"); break;
                 case "rtt": vscode.commands.executeCommand("embeddedRust.rtt"); break;
                 case "selectAndRun": {
                     openFile(msg.data.file);
-                    view.webview.html = this.getHtml();
+                    this.sendState();
                     vscode.commands.executeCommand(`embeddedRust.${msg.data.cmd}`);
                     break;
                 }
@@ -97,9 +98,38 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
     }
 
     refresh() {
-        if (this.view) {
-            this.view.webview.html = this.getHtml();
-        }
+        this.sendState();
+    }
+
+    private sendState() {
+        if (!this.view) { return; }
+        const webview = this.view.webview;
+        const uri = (rel: string) => webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, rel)).toString();
+        webview.postMessage({
+            command: "init",
+            data: {
+                files: getCachedFiles(),
+                hiddenFiles: getHiddenFiles(),
+                pickedFile: getActiveFile(),
+                boards: listBoards(),
+                activeBoardFile: getActiveBoardFile(),
+                activeName: getActiveBoard()?.board.name ?? "None",
+                effectivePort: getEffectivePort() ?? "",
+                portIsFromConfig: !getPortOverride() && !!getActiveBoard()?.probe?.port,
+                portOverride: getPortOverride() ?? "",
+                cmdPreviews: {
+                    build: this.getCmdPreview("build"),
+                    flash: this.getCmdPreview("flash"),
+                    rtt: this.getCmdPreview("rtt"),
+                },
+                uris: {
+                    run: uri("imgs/run.svg"),
+                    refresh: uri("imgs/refresh.svg"),
+                    check: uri("imgs/check.svg"),
+                    drop: uri("imgs/drop.svg"),
+                },
+            },
+        });
     }
 
     private startPolling(view: vscode.WebviewView) {
@@ -142,152 +172,18 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
     }
 
     private getHtml(): string {
-        const activeName = getActiveBoard()?.board.name ?? "None";
-        const activeBoardFile = getActiveBoardFile();
-        const effectivePort = getEffectivePort() ?? "";
-        const portIsFromConfig = !getPortOverride() && !!getActiveBoard()?.probe?.port;
-        const pickedFile = getActiveFile();
-        const boards = listBoards();
-        const files = getCachedFiles();
-        const hidden = getHiddenFiles();
         const cssUri = this.view!.webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, "media", "panel.css"));
         const jsUri = this.view!.webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, "media", "panel.js"));
-        const runUri = this.view!.webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, "imgs", "run.svg"));
-        const refreshUri = this.view!.webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, "imgs", "refresh.svg"));
-        const checkUri = this.view!.webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, "imgs", "check.svg"));
-        const dynoUri = this.view!.webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, "imgs", "dyno.svg"));
-        const dropUri = this.view!.webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, "imgs", "drop.svg"));
-
-        const esc = (s: string) =>
-            s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-
-
-        const fileItems = files.length
-            ? files.map((f, i) => {
-                const isActive = f === pickedFile;
-                return `<div class="file-item${isActive ? " active" : ""}" draggable="true" data-file="${esc(f)}" data-index="${i}" ondragstart="onDragStart(event,${i})" ondragend="onDragEnd(event)" ondragover="onDragOver(event,${i})" ondrop="onDrop(event,${i})" onclick="onItemClick(event,${esc(JSON.stringify(f))})" title="${esc(f)}">
-            <span class="file-name">${esc(path.basename(f))}</span>
-            <button class="remove-btn" draggable="false" onclick="event.stopPropagation();send('hideFile',${esc(JSON.stringify(f))})" title="Hide file">✕</button>
-          </div>`;
-            }).join("\n")
-            : `<div class="file-empty">No files found</div>`;
-
-        const hiddenItems = hidden.length
-            ? hidden.map((f) => {
-                return `<div class="file-item hidden-item" title="${esc(f)}">
-            <span class="file-name">${esc(path.basename(f))}</span>
-            <button class="remove-btn" onclick="event.stopPropagation();send('unhideFile',${esc(JSON.stringify(f))})" title="Restore file">✕</button>
-          </div>`;
-            }).join("\n")
-            : `<div class="file-empty">No hidden files</div>`;
-
-        const portSummary = effectivePort ? esc(effectivePort) : "auto";
-        const configSummary = `${activeName} · ${portSummary}`;
-
-        return /*html*/ `<!DOCTYPE html>
-    <html>
-    <head>
-      <link rel="stylesheet" href="${cssUri}">
-    </head>
-    <body>
-      <!-- <img src="${dynoUri}" class="dyno-logo"> -->
-      
-      <div class="section-row">
-        <span class="label">Files</span>
-        <div style="display:flex;gap:4px">
-          <button class="icon-btn" id="hiddenToggle" onclick="toggleHidden()" title="Toggle hidden files" style="opacity:${hidden.length > 0 ? "1" : "0.5"}">◌${hidden.length > 0 ? ` ${hidden.length}` : ""}</button>
-          <button class="icon-btn" onclick="send('refresh')" title="Refresh file list"><img src="${refreshUri}" class="icon-svg"></button>
-        </div>
-      </div>
-      <div class="file-list" id="fileList">
-        ${fileItems}
-      </div>
-      <div id="hiddenSection" style="display:none">
-        <div class="label" style="margin-top:4px">Hidden</div>
-        <div class="file-list">
-          ${hiddenItems}
-        </div>
-      </div>
-      
-      ${["build", "flash"].map(cmd => {
-            const label = cmd[0].toUpperCase() + cmd.slice(1);
-            const inner = `<span class="btn-icon"><img src="${runUri}" class="btn-run-icon"></span>
-          <span class="btn-label">${label}</span>
-          <span class="btn-check"><img src="${checkUri}" class="btn-check-icon"></span>`;
-            if (files.length > 1) {
-                const dropItems = files.map(f =>
-                    `<div class="drop-item${f === pickedFile ? " drop-active" : ""}" onclick="pickTarget(${esc(JSON.stringify(f))},'${cmd}')">${esc(path.basename(f))}</div>`
-                ).join("");
-                return `<div class="split-group" id="grp-${cmd}">
-          <button class="split-main action-button" onclick="sendAction(this,'${cmd}')" data-tip-label="${label}" data-tip-cmd="${esc(this.getCmdPreview(cmd))}">${inner}</button>
-          <button class="split-drop" onclick="toggleDrop(event,'menu-${cmd}')"><img src="${dropUri}" class="drop-icon"></button>
-          <div class="drop-menu" id="menu-${cmd}">${dropItems}</div>
-        </div>`;
-            }
-            return `<button onclick="sendAction(this,'${cmd}')" class="action-button" data-tip-label="${label}" data-tip-cmd="${esc(this.getCmdPreview(cmd))}">${inner}</button>`;
-        }).join("\n      ")}
-      <button onclick="sendAction(this,'rtt')" class="action-button" data-tip-label="RTT Monitor" data-tip-cmd="${esc(this.getCmdPreview("rtt"))}">
-        <span class="btn-icon">
-            <img src="${runUri}" class="btn-run-icon">
-        </span>
-        <span class="btn-label">RTT Monitor</span>
-        <span class="btn-check">
-            <img src="${checkUri}" class="btn-check-icon">
-        </span>
-      </button>
-      
-      
-      <div class="label">Target</div>
-      <div class="cs-wrap">
-        <div class="cs-btn" onclick="toggleDrop(event,'menu-target')">
-          <span class="cs-val">${pickedFile ? esc(path.basename(pickedFile)) : "No files"}</span>
-          <img src="${dropUri}" class="drop-icon">
-        </div>
-        <div class="drop-menu" id="menu-target">
-          ${files.length
-                ? files.map(f => `<div class="drop-item${f === pickedFile ? " drop-active" : ""}" onclick="send('selectFile',${esc(JSON.stringify(f))})">${esc(path.basename(f))}</div>`).join("")
-                : `<div class="drop-item" style="opacity:0.5;cursor:default">No files</div>`}
-        </div>
-      </div>
-
-      <div class="config-header" onclick="toggleConfig()">
-        <img src="${dropUri}" class="config-arrow" id="configArrow">
-        <span class="config-summary" id="configSummary">${configSummary}</span>
-        <span id="probeDot" class="probe-dot" title="Checking..."></span>
-      </div>
-      <div id="configSection" style="display:none">
-        <div class="label" style="margin-top:6px">Board</div>
-        <div class="cs-wrap">
-          <div class="cs-btn" onclick="toggleDrop(event,'menu-board')">
-            <span class="cs-val">${activeBoardFile ? esc(activeBoardFile.replace(/\.toml$/, "")) : "-- choose a board --"}</span>
-            <img src="${dropUri}" class="drop-icon">
-          </div>
-          <div class="drop-menu" id="menu-board">
-            ${boards.length
-                ? boards.map(f => `<div class="drop-item${f === activeBoardFile ? " drop-active" : ""}" onclick="send('selectBoard',${esc(JSON.stringify(f))})">${esc(f.replace(/\.toml$/, ""))}</div>`).join("")
-                : `<div class="drop-item" style="opacity:0.5;cursor:default">No boards</div>`}
-          </div>
-        </div>
-        <div class="active-board">Active: ${activeName}</div>
-        <div class="label">Port${portIsFromConfig ? ` <span style="opacity:0.6;font-style:italic">(from config: ${esc(effectivePort)})</span>` : ""}</div>
-        <div style="display:flex;gap:4px;margin-bottom:8px">
-          <div class="cs-wrap" style="flex:1;margin:0">
-            <div class="cs-btn" onclick="toggleDrop(event,'menu-port')">
-              <span class="cs-val" id="cs-val-port">${effectivePort || "auto"}</span>
-              <img src="${dropUri}" class="drop-icon">
-            </div>
-            <div class="drop-menu" id="menu-port">
-              <div class="drop-item${!getPortOverride() ? " drop-active" : ""}" data-val="" onclick="pickPort('','auto')">-- auto --</div>
-            </div>
-          </div>
-          <button class="icon-btn" onclick="refreshPorts()" title="Refresh port list" style="flex-shrink:0"><img src="${refreshUri}" class="icon-svg"></button>
-        </div>
-      </div>
-      
-      <script>window.HIDDEN_COUNT = ${hidden.length}; window.CURRENT_PORT = ${JSON.stringify(getPortOverride() ?? "")};</script>
-      <script src="${jsUri}"></script>
-    </body>
-    </html>`;
+        return `<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="${cssUri}">
+</head>
+<body>
+  <div id="root"></div>
+  <script src="${jsUri}"></script>
+</body>
+</html>`;
     }
 }
 
@@ -305,6 +201,7 @@ export class NewProjectPanelProvider implements vscode.WebviewViewProvider {
             localResourceRoots: [vscode.Uri.joinPath(this.ext.extensionUri, "media")],
         };
         view.webview.html = this.getHtml();
+        this.sendState();
         view.webview.onDidReceiveMessage((msg) => {
             if (msg.command === "newProject") {
                 vscode.commands.executeCommand("embeddedRust.newProject");
@@ -313,41 +210,39 @@ export class NewProjectPanelProvider implements vscode.WebviewViewProvider {
     }
 
     refresh() {
-        if (this.view) { this.view.webview.html = this.getHtml(); }
+        this.sendState();
+    }
+
+    private sendState() {
+        if (!this.view) { return; }
+        const board = getActiveBoard();
+        this.view.webview.postMessage({
+            command: "init",
+            data: {
+                hasConfig: !!board?.new_project,
+                boardName: board?.board.name ?? "no board selected",
+            },
+        });
     }
 
     private getHtml(): string {
-        const board = getActiveBoard();
         const cssUri = this.view!.webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, "media", "panel.css"));
-        const esc = (s: string) =>
-            s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-
-        const hasConfig = !!board?.new_project;
-        const boardName = board?.board.name ?? "no board selected";
-
-        const body = hasConfig
-            ? `<p class="np-board">Board: <strong>${esc(boardName)}</strong></p>
-      <button onclick="send('newProject')">New Project…</button>`
-            : `<p class="np-hint">Select a board with a <code>[new_project]</code> config to scaffold a project.</p>`;
-
-        return /*html*/`<!DOCTYPE html>
-    <html>
-    <head>
-      <link rel="stylesheet" href="${cssUri}">
-      <style>
-        .np-board { font-size:12px; opacity:0.75; margin:0 0 8px; }
-        .np-hint  { font-size:12px; opacity:0.55; font-style:italic; margin:0; }
-        code { font-family: var(--vscode-editor-font-family, monospace); }
-      </style>
-    </head>
-    <body>
-      ${body}
-      <script>
-        const vscode = acquireVsCodeApi();
-        function send(cmd) { vscode.postMessage({ command: cmd }); }
-      </script>
-    </body>
-    </html>`;
+        const jsUri = this.view!.webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, "media", "new-project.js"));
+        return `<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="${cssUri}">
+  <style>
+    .np-board { font-size:12px; opacity:0.75; margin:0 0 8px; }
+    .np-hint  { font-size:12px; opacity:0.55; font-style:italic; margin:0; }
+    code { font-family: var(--vscode-editor-font-family, monospace); }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="${jsUri}"></script>
+</body>
+</html>`;
     }
 }
 
@@ -368,6 +263,7 @@ export class BoardLibraryPanelProvider implements vscode.WebviewViewProvider {
             ],
         };
         view.webview.html = this.getHtml();
+        this.sendSetup();
 
         view.webview.onDidReceiveMessage(async (msg) => {
             switch (msg.command) {
@@ -379,8 +275,12 @@ export class BoardLibraryPanelProvider implements vscode.WebviewViewProvider {
                     }
                     try {
                         const entries = await fetchLibraryList(repo);
-                        const withInstalled = entries.map(e => ({ ...e, installed: isBoardInstalled(e.name) }));
-                        view.webview.postMessage({ command: "libraryList", data: withInstalled });
+                        const withStatus = entries.map(e => ({
+                            ...e,
+                            cached: isBoardCached(e.name),
+                            inWorkspace: isBoardInWorkspace(e.name),
+                        }));
+                        view.webview.postMessage({ command: "libraryList", data: withStatus });
                     } catch (err: unknown) {
                         const errMsg = err instanceof Error ? err.message : String(err);
                         console.error("[rdyno] fetchLibrary error:", errMsg);
@@ -388,16 +288,28 @@ export class BoardLibraryPanelProvider implements vscode.WebviewViewProvider {
                     }
                     break;
                 }
-                case "addBoard": {
+                case "downloadBoard": {
                     const { name, downloadUrl } = msg.data as { name: string; downloadUrl: string };
                     try {
                         await fetchAndSaveBoard(name, downloadUrl);
-                        view.webview.postMessage({ command: "boardAdded", data: name });
-                        vscode.window.showInformationMessage(`Board saved: ${name}`);
+                        view.webview.postMessage({ command: "boardDownloaded", data: name });
                     } catch (err: unknown) {
                         const errMsg = err instanceof Error ? err.message : String(err);
                         view.webview.postMessage({ command: "boardError", data: { name, error: errMsg } });
-                        vscode.window.showErrorMessage(`Failed to add board: ${errMsg}`);
+                        vscode.window.showErrorMessage(`Failed to download board: ${errMsg}`);
+                    }
+                    break;
+                }
+                case "addToProject": {
+                    const name = msg.data as string;
+                    try {
+                        copyBoardToWorkspace(name);
+                        view.webview.postMessage({ command: "boardAddedToProject", data: name });
+                        vscode.window.showInformationMessage(`Board added to project: ${name}`);
+                    } catch (err: unknown) {
+                        const errMsg = err instanceof Error ? err.message : String(err);
+                        view.webview.postMessage({ command: "boardError", data: { name, error: errMsg } });
+                        vscode.window.showErrorMessage(`Failed to add board to project: ${errMsg}`);
                     }
                     break;
                 }
@@ -415,11 +327,25 @@ export class BoardLibraryPanelProvider implements vscode.WebviewViewProvider {
         });
     }
 
+    private sendSetup() {
+        if (!this.view) { return; }
+        const webview = this.view.webview;
+        const uri = (rel: string) => webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, rel)).toString();
+        webview.postMessage({
+            command: "setup",
+            uris: {
+                check: uri("imgs/check.svg"),
+                down: uri("imgs/down.svg"),
+                plus: uri("imgs/plus.svg"),
+                refresh: uri("imgs/refresh.svg"),
+            },
+        });
+    }
+
     private getHtml(): string {
         const cssUri = this.view!.webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, "media", "panel.css"));
-        const checkUri = this.view!.webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, "imgs", "check.svg"));
-        const addUri = this.view!.webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, "imgs", "down.svg"));
-        return /*html*/`<!DOCTYPE html>
+        const jsUri = this.view!.webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, "media", "library.js"));
+        return `<!DOCTYPE html>
 <html>
 <head>
   <link rel="stylesheet" href="${cssUri}">
@@ -427,138 +353,13 @@ export class BoardLibraryPanelProvider implements vscode.WebviewViewProvider {
 <body>
   <div class="section-row">
     <span class="label">Board Library</span>
-    <button class="icon-btn" onclick="load()" title="Refresh">↺</button>
+    <button class="icon-btn" onclick="load()" title="Refresh">
+      <img id="refreshIcon" class="icon-svg">
+    </button>
   </div>
   <input id="search" type="text" placeholder="Search boards…" oninput="filterBoards(this.value)" autocomplete="off" spellcheck="false">
   <div id="content"><div class="lib-status">Loading…</div></div>
-  <script>
-    const vscode = acquireVsCodeApi();
-    const CHECK_URI = ${JSON.stringify(checkUri.toString())};
-    const PLUS_URI = ${JSON.stringify(addUri.toString())};
-    let boardIndex = {};
-    let allBoards = [];
-    function send(cmd, data) { vscode.postMessage({ command: cmd, data }); }
-    function checkBtn(name) { return \`<button class="lib-added" data-board="\${esc(name)}" ondblclick="removeBoard(this)" title="Double-click to remove"><img src="\${CHECK_URI}"></button>\`; }
-    function plusBtn(name, url) { return \`<button class="lib-add" data-board="\${esc(name)}" data-url="\${esc(url)}" onclick="addBoard(this)"><img src="\${PLUS_URI}"></button>\`; }
-    function removeBoard(btn) { const name = btn.dataset.board; btn.disabled = true; send('removeBoard', name); }
-
-    // --- fuzzy search ---
-    function trigrams(s) {
-      s = '  ' + s.toLowerCase() + ' ';
-      const t = new Set();
-      for (let i = 0; i < s.length - 2; i++) t.add(s.slice(i, i + 3));
-      return t;
-    }
-    function trigramSim(a, b) {
-      const ta = trigrams(a), tb = trigrams(b);
-      let inter = 0;
-      for (const t of ta) if (tb.has(t)) inter++;
-      return (2 * inter) / (ta.size + tb.size) || 0;
-    }
-    function jaroWinkler(s, t) {
-      s = s.toLowerCase(); t = t.toLowerCase();
-      if (s === t) return 1;
-      const sl = s.length, tl = t.length;
-      const md = Math.max(Math.floor(Math.max(sl, tl) / 2) - 1, 0);
-      const sm = new Array(sl).fill(false), tm = new Array(tl).fill(false);
-      let matches = 0, trans = 0;
-      for (let i = 0; i < sl; i++) {
-        const lo = Math.max(0, i - md), hi = Math.min(i + md + 1, tl);
-        for (let j = lo; j < hi; j++) {
-          if (!tm[j] && s[i] === t[j]) { sm[i] = tm[j] = true; matches++; break; }
-        }
-      }
-      if (!matches) return 0;
-      let k = 0;
-      for (let i = 0; i < sl; i++) {
-        if (!sm[i]) continue;
-        while (!tm[k]) k++;
-        if (s[i] !== t[k]) trans++;
-        k++;
-      }
-      const jaro = (matches / sl + matches / tl + (matches - trans / 2) / matches) / 3;
-      let pfx = 0;
-      for (let i = 0; i < Math.min(4, sl, tl); i++) { if (s[i] === t[i]) pfx++; else break; }
-      return jaro + pfx * 0.1 * (1 - jaro);
-    }
-    function fuzzyScore(query, candidate) {
-      query = query.toLowerCase(); candidate = candidate.toLowerCase();
-      if (candidate.includes(query)) return 1;
-      return 0.55 * trigramSim(query, candidate) + 0.45 * jaroWinkler(query, candidate);
-    }
-    // --------------------
-
-    function renderList(boards) {
-      if (!boards.length) {
-        document.getElementById('content').innerHTML = '<div class="lib-status">No matches.</div>';
-        return;
-      }
-      const rows = boards.map(b => {
-        const btn = b.installed ? checkBtn(b.name) : plusBtn(b.name, b.downloadUrl);
-        return \`<div class="lib-item"><span class="lib-name" title="\${esc(b.path)}">\${esc(b.path.replace(/\\.toml$/, ''))}</span>\${btn}</div>\`;
-      }).join('');
-      document.getElementById('content').innerHTML = \`<div class="lib-list">\${rows}</div>\`;
-    }
-
-    function filterBoards(query) {
-      if (!allBoards.length) return;
-      const q = query.trim();
-      if (!q) { renderList(allBoards); return; }
-      const scored = allBoards
-        .map(b => ({ b, score: fuzzyScore(q, b.path.replace(/\\.toml$/, '')) }))
-        .filter(x => x.score > 0.25)
-        .sort((a, z) => z.score - a.score);
-      renderList(scored.map(x => x.b));
-    }
-
-    function load() {
-      document.getElementById('content').innerHTML = '<div class="lib-status">Loading…</div>';
-      send('fetchLibrary');
-    }
-
-    function addBoard(btn) {
-      const name = btn.dataset.board;
-      const downloadUrl = btn.dataset.url;
-      btn.disabled = true; btn.innerHTML = '…';
-      send('addBoard', { name, downloadUrl });
-    }
-
-    window.addEventListener('message', e => {
-      const msg = e.data;
-      if (msg.command === 'libraryList') {
-        if (!msg.data.length) {
-          document.getElementById('content').innerHTML = '<div class="lib-status">No .toml files found in repo.</div>';
-          return;
-        }
-        allBoards = msg.data;
-        boardIndex = Object.fromEntries(msg.data.map(b => [b.name, b.downloadUrl]));
-        const q = document.getElementById('search').value;
-        q.trim() ? filterBoards(q) : renderList(allBoards);
-      } else if (msg.command === 'libraryError') {
-        const isConfig = msg.data.includes('No repo configured');
-        document.getElementById('content').innerHTML = \`
-          <div class="lib-error">\${esc(msg.data)}</div>
-          \${isConfig ? '<button class="icon-btn" onclick="send(\\'openSettings\\')">Open Settings</button>' : ''}\`;
-      } else if (msg.command === 'boardAdded') {
-        const idx = allBoards.findIndex(b => b.name === msg.data);
-        if (idx !== -1) allBoards[idx] = { ...allBoards[idx], installed: true };
-        const btn = document.querySelector('[data-board="' + CSS.escape(msg.data) + '"]');
-        if (btn) { btn.outerHTML = checkBtn(msg.data); }
-      } else if (msg.command === 'boardRemoved') {
-        const idx = allBoards.findIndex(b => b.name === msg.data);
-        if (idx !== -1) allBoards[idx] = { ...allBoards[idx], installed: false };
-        const btn = document.querySelector('[data-board="' + CSS.escape(msg.data) + '"]');
-        if (btn) { btn.outerHTML = plusBtn(msg.data, boardIndex[msg.data] || ''); }
-      } else if (msg.command === 'boardError') {
-        const btn = document.querySelector('[data-board="' + CSS.escape(msg.data.name) + '"]');
-        if (btn) { btn.disabled = false; btn.innerHTML = \`<img src="\${PLUS_URI}">\`; }
-      }
-    });
-
-    function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-    load();
-  </script>
+  <script src="${jsUri}"></script>
 </body>
 </html>`;
     }

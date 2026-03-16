@@ -2,7 +2,7 @@
   <defs>
     <bx:grid x="0" y="0" width="10" height="10"></bx:grid>
   </defs>
-  <polyline style="fill: none; stroke: rgb(233, 233, 233); stroke-width: 43px;" points="30 340 30 470 470 470 470 340"></polyline>
-  <polyline style="fill: none; stroke: rgb(233, 233, 233); stroke-width: 43px;" points="92.857 235.332 250 382 407.143 235.332"></polyline>
-  <line style="fill: none; stroke: rgb(233, 233, 233); stroke-width: 43px;" x1="250" y1="382.863" x2="251.172" y2="30"></line>
+  <polyline style="fill: none; stroke: rgb(233, 233, 233); stroke-width: 50px;" points="30 340 30 470 470 470 470 340"></polyline>
+  <polyline style="fill: none; stroke: rgb(233, 233, 233); stroke-width: 50px;" points="92.857 235.332 250 382 407.143 235.332"></polyline>
+  <line style="fill: none; stroke: rgb(233, 233, 233); stroke-width: 50px;" x1="250" y1="382.863" x2="251.172" y2="30"></line>
 </svg>
