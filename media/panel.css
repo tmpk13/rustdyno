@@ -11,6 +11,110 @@ body {
     min-height: 5rem;
 }
 
+/* 
+#################################
+### Library UI
+#################################
+*/
+
+/* + and check buttons for library */
+.lib-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--vscode-dropdown-border);
+}
+
+.lib-item:last-child {
+    border-bottom: none;
+}
+
+.lib-name {
+    font-size: 12px;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.lib-add {
+    padding: 0;
+    margin: 0;
+    background-color: #d1a618;
+    width: 2rem;
+    height: 2rem;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.lib-add img {
+    display: block;
+}
+
+.lib-added {
+    padding: 0;
+    background-color: #4caf50;
+    width: 2rem;
+    height: 2rem;
+    margin: 0;
+    flex-shrink: 0;
+    cursor: default;
+    border: 1px solid var(--vscode-dropdown-border);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lib-added img {
+    display: block;
+}
+
+.lib-list {
+    border: 1px solid var(--vscode-dropdown-border);
+    border-radius: 4px;
+    margin-bottom: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.lib-status {
+    font-size: 12px;
+    opacity: 0.6;
+    font-style: italic;
+    padding: 8px;
+}
+
+.lib-error {
+    font-size: 12px;
+    color: var(--vscode-errorForeground);
+    padding: 8px;
+}
+
+.lib-configure {
+    font-size: 12px;
+    opacity: 0.7;
+    margin-bottom: 8px;
+}
+
+#search {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 6px;
+    padding: 3px 6px;
+    font-size: 12px;
+    background: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border, var(--vscode-dropdown-border));
+    border-radius: 3px;
+    outline: none;
+}
+
+#search:focus {
+    border-color: var(--vscode-focusBorder);
+}
+
 /* Base button */
 button {
     min-height: 2rem;
@@ -63,15 +167,16 @@ button:hover {
 
 /* Chevron inside the custom select; rotates when open */
 .cs-btn .drop-icon {
-    width: 12px;
-    height: 12px;
+    width: 1.5rem;
+    height: 1.5rem;
     flex-shrink: 0;
     margin-left: 6px;
+    transform: rotate(-90deg);
     transition: transform 0.2s ease;
 }
 
 .cs-btn.open .drop-icon {
-    transform: rotate(-90deg);
+    transform: rotate(0deg);
 }
 
 /* Muted field label */
@@ -99,10 +204,11 @@ button:hover {
 
 /* Small inline icon button (e.g. "+" add button in a section row) */
 .icon-btn {
-    width: auto;
-    padding: 2px 8px;
+    width: 2rem;
+    height: 2rem;
+    /* padding: 2px 8px; */
     margin: 0;
-    font-size: 12px;
+
 }
 
 /* Scrollable list of files */
@@ -312,8 +418,8 @@ button.done .btn-check {
 
 /* Chevron icon inside the split-drop button; rotates when open */
 .split-drop img.drop-icon {
-    width: 12px;
-    height: 12px;
+    width: 1.5rem;
+    height: 1.5rem;
     display: block;
     transition: transform 0.2s ease;
 }

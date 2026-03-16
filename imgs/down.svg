@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" xmlns:bx="https://boxy-svg.com">
   <defs>
-    <bx:grid x="0" y="0" width="20" height="20"></bx:grid>
+    <bx:grid x="0" y="0" width="10" height="10"></bx:grid>
   </defs>
-  <polyline style="fill: none; stroke-width: 14px; stroke: rgb(48, 48, 48);" points="100 300 100 340 380 340 380 300"></polyline>
-  <polyline style="fill: none; stroke-width: 10px; stroke: rgb(48, 48, 48);" points="140 180 240 280 340 180"></polyline>
-  <line style="fill: none; stroke-width: 10px; stroke: rgb(48, 48, 48);" x1="239.254" y1="280.589" x2="240" y2="40"></line>
+  <polyline style="fill: none; stroke: rgb(233, 233, 233); stroke-width: 43px;" points="30 411.332 30 470 470 470 470 411.332"></polyline>
+  <polyline style="fill: none; stroke: rgb(233, 233, 233); stroke-width: 43px;" points="92.857 235.332 250 382 407.143 235.332"></polyline>
+  <line style="fill: none; stroke: rgb(233, 233, 233); stroke-width: 43px;" x1="250" y1="382.863" x2="251.172" y2="30"></line>
 </svg>

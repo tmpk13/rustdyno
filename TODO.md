@@ -31,8 +31,10 @@
 - [ ] Add git files automatically, set rules
 - [ ] Add STOP feature probe-rs `probe-rs reset --halt`?
 - [ ] Make static reload button rotate
-- [ ] Trigram + Jaro-Winkler fuzzy search for the boards
+- [x] Trigram + Jaro-Winkler fuzzy search for the boards
 - [ ] Make it flip orientation when it is wider than it is high
+- [ ] Board adder tool page with checkboxes to enable/disable the items. Typing in the edit field enables it 
+- [ ] Add clear button for searching boards 
 
 # ?
 - [ ] integrate installer for board toolchains??
