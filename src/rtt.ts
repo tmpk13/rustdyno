@@ -11,7 +11,7 @@ export function startRtt(): void {
     return;
   }
 
-  const probePath = vscode.workspace.getConfiguration("embeddedRust").get<string>("probersPath", "probe-rs");
+  const probePath = vscode.workspace.getConfiguration("rdyno").get<string>("probersPath", "probe-rs");
 
   // Use pseudo-terminal for clean output
   rttTerminal?.dispose();

@@ -1,3 +1,8 @@
+/* Sub-panels (library, new-project) that share this CSS but have no #sectionsContainer */
+body.sub-panel {
+    padding: 0.625rem;
+}
+
 /* Panel root */
 body {
     padding: 0;
@@ -85,6 +90,13 @@ body {
 
 .lib-down img,
 .lib-add img {
+    padding: 0;
+    margin: 0;
+    display: block;
+    width: 1rem;
+    height: 1rem;
+}
+.lib-added img {
     padding: 0;
     margin: 0;
     display: block;

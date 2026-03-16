@@ -5,7 +5,7 @@ export async function flash(): Promise<void> {
   const board = getActiveBoard() ?? (await selectBoard());
   if (!board) { return; }
 
-  const probePath = vscode.workspace.getConfiguration("embeddedRust").get<string>("probersPath", "probe-rs");
+  const probePath = vscode.workspace.getConfiguration("rdyno").get<string>("probersPath", "probe-rs");
   const port = getEffectivePort();
   const portFlag = port ? ` --probe ${port}` : "";
 

@@ -22,46 +22,46 @@
   "contributes": {
     "commands": [
       {
-        "command": "embeddedRust.selectBoard",
-        "title": "Embedded Rust: Select Board"
+        "command": "rdyno.selectBoard",
+        "title": "rdyno: Select Board"
       },
       {
-        "command": "embeddedRust.build",
-        "title": "Embedded Rust: Build"
+        "command": "rdyno.build",
+        "title": "rdyno: Build"
       },
       {
-        "command": "embeddedRust.flash",
-        "title": "Embedded Rust: Flash"
+        "command": "rdyno.flash",
+        "title": "rdyno: Flash"
       },
       {
-        "command": "embeddedRust.rtt",
-        "title": "Embedded Rust: RTT Monitor"
+        "command": "rdyno.rtt",
+        "title": "rdyno: RTT Monitor"
       },
       {
-        "command": "embeddedRust.newProject",
-        "title": "Embedded Rust: New Project"
+        "command": "rdyno.newProject",
+        "title": "rdyno: New Project"
       }
     ],
     "configuration": {
-      "title": "Embedded Rust Runner",
+      "title": "rdyno",
       "properties": {
-        "embeddedRust.boardConfigDir": {
+        "rdyno.boardConfigDir": {
           "type": "string",
           "default": ".rdyno",
           "description": "Directory containing board TOML configs"
         },
-        "embeddedRust.probersPath": {
+        "rdyno.probersPath": {
           "type": "string",
           "default": "probe-rs",
           "description": "Path to probe-rs binary"
         },
-        "embeddedRust.pickerGlobs": {
+        "rdyno.pickerGlobs": {
           "type": "array",
           "items": { "type": "string" },
           "default": ["src/**/*.rs"],
           "description": "Glob patterns (relative to workspace root) for the file picker"
         },
-        "embeddedRust.boardLibraryRepo": {
+        "rdyno.boardLibraryRepo": {
           "type": "string",
           "default": "tmpk13/rdyno",
           "description": "GitHub repo (owner/repo) to use as the board library, e.g. \"my-org/rdyno-boards\""
@@ -71,27 +71,27 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "embeddedRust",
-          "title": "Embedded Rust",
+          "id": "rdyno",
+          "title": "rdyno",
           "icon": "./imgs/dyno.svg"
         }
       ]
     },
     "views": {
-      "embeddedRust": [
+      "rdyno": [
         {
           "type": "webview",
-          "id": "embeddedRust.panel",
+          "id": "rdyno.panel",
           "name": "Board Controls"
         },
         {
           "type": "webview",
-          "id": "embeddedRust.newProject",
+          "id": "rdyno.newProject",
           "name": "New Project"
         },
         {
           "type": "webview",
-          "id": "embeddedRust.boardLibrary",
+          "id": "rdyno.boardLibrary",
           "name": "Board Library"
         }
       ]

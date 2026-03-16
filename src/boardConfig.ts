@@ -69,7 +69,7 @@ export function ensureBoardDir(): void {
 
 function getBoardDir(): string {
   const wsRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-  const configDir = vscode.workspace.getConfiguration("embeddedRust").get<string>("boardConfigDir", ".rdyno");
+  const configDir = vscode.workspace.getConfiguration("rdyno").get<string>("boardConfigDir", ".rdyno");
   return path.join(wsRoot ?? ".", configDir);
 }
 

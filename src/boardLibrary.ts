@@ -68,7 +68,7 @@ export async function fetchAndSaveBoard(filename: string, downloadUrl: string): 
 export function getBoardsInstallDir(): string {
     if (_globalBoardsDir) { return _globalBoardsDir; }
     const wsRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-    const configDir = vscode.workspace.getConfiguration("embeddedRust").get<string>("boardConfigDir", ".rdyno");
+    const configDir = vscode.workspace.getConfiguration("rdyno").get<string>("boardConfigDir", ".rdyno");
     return path.join(wsRoot ?? ".", configDir);
 }
 
@@ -79,7 +79,7 @@ export function isBoardCached(filename: string): boolean {
 function getWorkspaceBoardDir(): string | undefined {
     const wsRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     if (!wsRoot) { return undefined; }
-    const configDir = vscode.workspace.getConfiguration("embeddedRust").get<string>("boardConfigDir", ".rdyno");
+    const configDir = vscode.workspace.getConfiguration("rdyno").get<string>("boardConfigDir", ".rdyno");
     return path.join(wsRoot, configDir);
 }
 

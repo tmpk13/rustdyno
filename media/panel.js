@@ -193,7 +193,7 @@ function basename(p) {
 }
 
 function startSpin(btn, cmd, data) {
-    if (btn.classList.contains('loading') || btn.classList.contains('done')) return;
+    if (btn.classList.contains('loading') || btn.classList.contains('done')) { return; }
     btn.classList.add('loading');
     btn.disabled = true;
     send(cmd, data);
@@ -254,7 +254,7 @@ function toggleHidden() {
 
 function spinRefresh(id) {
     const el = document.getElementById(id);
-    if (!el) return;
+    if (!el) {return;}
     el.classList.remove('spin-once');
     void el.offsetWidth;
     el.classList.add('spin-once');
@@ -272,7 +272,7 @@ function pickPort(val, label) {
         el.classList.toggle('drop-active', el.dataset.val === val);
     });
     const valEl = document.getElementById('cs-val-port');
-    if (valEl) valEl.textContent = label || 'auto';
+    if (valEl) {valEl.textContent = label || 'auto';}
     closeDrops();
     send('setPort', val);
 }
@@ -568,7 +568,7 @@ function onDrop(e, dropIndex) {
 
     document.addEventListener('mouseover', e => {
         const btn = e.target.closest('button[data-tip-cmd]');
-        if (!btn) return;
+        if (!btn) {return;}
         const rect = btn.getBoundingClientRect();
         tip.textContent = btn.dataset.tipLabel || '';
         tip.style.display = 'block';
@@ -578,7 +578,7 @@ function onDrop(e, dropIndex) {
     });
 
     document.addEventListener('mouseout', e => {
-        if (!e.target.closest('button[data-tip-cmd]')) return;
+        if (!e.target.closest('button[data-tip-cmd]')) {return;}
         clearTimeout(timer);
         tip.style.display = 'none';
     });
