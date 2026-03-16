@@ -85,34 +85,56 @@ function pickPort(val, label) {
     send('setPort', val);
 }
 
+function setUris(uris) {
+    const img = id => document.getElementById(id);
+    img('refreshIcon').src = uris.refresh;
+    img('rttRunIcon').src = uris.run;
+    img('rttCheckIcon').src = uris.check;
+    img('dropTarget').src = uris.drop;
+    img('dropBoard').src = uris.drop;
+    img('dropPort').src = uris.drop;
+    img('refreshPortIcon').src = uris.refresh;
+    img('configArrow').src = uris.drop;
+}
+
 function render(state) {
     STATE = state;
     const esc = safeHtml;
     const { files, hiddenFiles, pickedFile, boards, activeBoardFile, activeName,
         effectivePort, portIsFromConfig, portOverride, cmdPreviews, uris } = state;
 
-    // Seed CURRENT_PORT only on first render (pickPort manages it after that)
-    if (_firstRender) {
+    const isFirst = _firstRender;
+    if (isFirst) {
+        _firstRender = false;
         window.CURRENT_PORT = portOverride;
+        setUris(uris);
     }
 
-    const fileItems = files.length
+    // File list
+    document.getElementById('fileList').innerHTML = files.length
         ? files.map((f, i) =>
             `<div class="file-item${f === pickedFile ? ' active' : ''}" draggable="true" data-file="${esc(f)}" data-index="${i}" ondragstart="onDragStart(event,${i})" ondragend="onDragEnd(event)" ondragover="onDragOver(event,${i})" ondrop="onDrop(event,${i})" onclick="onItemClick(event,${esc(JSON.stringify(f))})" title="${esc(f)}">
   <span class="file-name">${esc(basename(f))}</span>
-  <button class="remove-btn" draggable="false" onclick="event.stopPropagation();send('hideFile',${esc(JSON.stringify(f))})" title="Hide file">✕</button>
+  <button class="remove-btn" draggable="false" onclick="event.stopPropagation();send('hideFile',${esc(JSON.stringify(f))})" title="Hide file">&#x2715;</button>
 </div>`).join('\n')
         : '<div class="file-empty">No files found</div>';
 
-    const hiddenItems = hiddenFiles.length
+    // Hidden file list
+    document.getElementById('hiddenList').innerHTML = hiddenFiles.length
         ? hiddenFiles.map(f =>
             `<div class="file-item hidden-item" title="${esc(f)}">
   <span class="file-name">${esc(basename(f))}</span>
-  <button class="remove-btn" onclick="event.stopPropagation();send('unhideFile',${esc(JSON.stringify(f))})" title="Restore file">✕</button>
+  <button class="remove-btn" onclick="event.stopPropagation();send('unhideFile',${esc(JSON.stringify(f))})" title="Restore file">&#x2715;</button>
 </div>`).join('\n')
         : '<div class="file-empty">No hidden files</div>';
 
-    const actionBtns = ['build', 'flash'].map(cmd => {
+    // Hidden toggle button
+    const hiddenToggle = document.getElementById('hiddenToggle');
+    hiddenToggle.style.opacity = (_isHiddenOpen || hiddenFiles.length > 0) ? '1' : '0.5';
+    hiddenToggle.textContent = '\u25CC' + (hiddenFiles.length > 0 ? ` ${hiddenFiles.length}` : '');
+
+    // Action buttons (split vs simple based on file count)
+    document.getElementById('actionBtns').innerHTML = ['build', 'flash'].map(cmd => {
         const label = cmd[0].toUpperCase() + cmd.slice(1);
         const tipCmd = esc(cmdPreviews[cmd]);
         const inner = `<span class="btn-icon"><img src="${uris.run}" class="btn-run-icon"></span>
@@ -131,91 +153,34 @@ function render(state) {
         return `<button onclick="sendAction(this,'${cmd}')" class="action-button" data-tip-label="${label}" data-tip-cmd="${tipCmd}">${inner}</button>`;
     }).join('\n');
 
-    const boardItems = boards.length
-        ? boards.map(f => `<div class="drop-item${f === activeBoardFile ? ' drop-active' : ''}" onclick="send('selectBoard',${esc(JSON.stringify(f))})">${esc(f.replace(/\.toml$/, ''))}</div>`).join('')
-        : '<div class="drop-item" style="opacity:0.5;cursor:default">No boards</div>';
+    // RTT button tip
+    document.getElementById('rttBtn').dataset.tipCmd = esc(cmdPreviews.rtt);
 
-    const targetItems = files.length
+    // Target dropdown
+    document.getElementById('cs-val-target').textContent = pickedFile ? basename(pickedFile) : 'No files';
+    document.getElementById('menu-target').innerHTML = files.length
         ? files.map(f => `<div class="drop-item${f === pickedFile ? ' drop-active' : ''}" onclick="send('selectFile',${esc(JSON.stringify(f))})">${esc(basename(f))}</div>`).join('')
         : '<div class="drop-item" style="opacity:0.5;cursor:default">No files</div>';
 
+    // Config summary
     const portSummary = effectivePort ? esc(effectivePort) : 'auto';
-    const configSummary = `${activeName} · ${portSummary}`;
-    const portLabel = portIsFromConfig
+    document.getElementById('configSummary').textContent = `${activeName} \u00b7 ${portSummary}`;
+
+    // Board dropdown
+    document.getElementById('cs-val-board').textContent = activeBoardFile ? activeBoardFile.replace(/\.toml$/, '') : '-- choose a board --';
+    document.getElementById('menu-board').innerHTML = boards.length
+        ? boards.map(f => `<div class="drop-item${f === activeBoardFile ? ' drop-active' : ''}" onclick="send('selectBoard',${esc(JSON.stringify(f))})">${esc(f.replace(/\.toml$/, ''))}</div>`).join('')
+        : '<div class="drop-item" style="opacity:0.5;cursor:default">No boards</div>';
+
+    // Active board label
+    document.getElementById('activeBoardLabel').textContent = `Active: ${activeName}`;
+
+    // Port label
+    document.getElementById('portLabelEl').innerHTML = 'Port' + (portIsFromConfig
         ? ` <span style="opacity:0.6;font-style:italic">(from config: ${esc(effectivePort)})</span>`
-        : '';
+        : '');
 
-    document.getElementById('root').innerHTML = `<div class="section-row">
-  <span class="label">Files</span>
-  <div style="display:flex;gap:4px">
-    <button class="icon-btn" id="hiddenToggle" onclick="toggleHidden()" title="Toggle hidden files" style="opacity:${hiddenFiles.length > 0 ? '1' : '0.5'}">◌${hiddenFiles.length > 0 ? ` ${hiddenFiles.length}` : ''}</button>
-    <button class="icon-btn" onclick="send('refresh')" title="Refresh file list"><img src="${uris.refresh}" class="icon-svg"></button>
-  </div>
-</div>
-<div class="file-list" id="fileList">
-  ${fileItems}
-</div>
-<div id="hiddenSection" style="display:none">
-  <div class="label" style="margin-top:4px">Hidden</div>
-  <div class="file-list">
-    ${hiddenItems}
-  </div>
-</div>
-${actionBtns}
-<button onclick="sendAction(this,'rtt')" class="action-button" data-tip-label="RTT Monitor" data-tip-cmd="${esc(cmdPreviews.rtt)}">
-  <span class="btn-icon"><img src="${uris.run}" class="btn-run-icon"></span>
-  <span class="btn-label">RTT Monitor</span>
-  <span class="btn-check"><img src="${uris.check}" class="btn-check-icon"></span>
-</button>
-<div class="label">Target</div>
-<div class="cs-wrap">
-  <div class="cs-btn" onclick="toggleDrop(event,'menu-target')">
-    <span class="cs-val">${pickedFile ? esc(basename(pickedFile)) : 'No files'}</span>
-    <img src="${uris.drop}" class="drop-icon">
-  </div>
-  <div class="drop-menu" id="menu-target">${targetItems}</div>
-</div>
-<div class="config-header" onclick="toggleConfig()">
-  <img src="${uris.drop}" class="config-arrow" id="configArrow">
-  <span class="config-summary" id="configSummary">${configSummary}</span>
-  <span id="probeDot" class="probe-dot" title="Checking..."></span>
-</div>
-<div id="configSection" style="display:none">
-  <div class="label" style="margin-top:6px">Board</div>
-  <div class="cs-wrap">
-    <div class="cs-btn" onclick="toggleDrop(event,'menu-board')">
-      <span class="cs-val">${activeBoardFile ? esc(activeBoardFile.replace(/\.toml$/, '')) : '-- choose a board --'}</span>
-      <img src="${uris.drop}" class="drop-icon">
-    </div>
-    <div class="drop-menu" id="menu-board">${boardItems}</div>
-  </div>
-  <div class="active-board">Active: ${activeName}</div>
-  <div class="label">Port${portLabel}</div>
-  <div style="display:flex;gap:4px;margin-bottom:8px">
-    <div class="cs-wrap" style="flex:1;margin:0">
-      <div class="cs-btn" onclick="toggleDrop(event,'menu-port')">
-        <span class="cs-val" id="cs-val-port">${effectivePort || 'auto'}</span>
-        <img src="${uris.drop}" class="drop-icon">
-      </div>
-      <div class="drop-menu" id="menu-port">
-        <div class="drop-item${!portOverride ? ' drop-active' : ''}" data-val="" onclick="pickPort('','auto')">-- auto --</div>
-      </div>
-    </div>
-    <button class="icon-btn" onclick="refreshPorts()" title="Refresh port list" style="flex-shrink:0"><img src="${uris.refresh}" class="icon-svg"></button>
-  </div>
-</div>`;
-
-    // Restore open/closed state across re-renders
-    if (_isConfigOpen) {
-        document.getElementById('configSection').style.display = 'block';
-        document.getElementById('configArrow').classList.add('open');
-    }
-    if (_isHiddenOpen) {
-        document.getElementById('hiddenSection').style.display = 'block';
-    }
-
-    if (_firstRender) {
-        _firstRender = false;
+    if (isFirst) {
         refreshPorts();
     }
 }

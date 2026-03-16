@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" xmlns:bx="https://boxy-svg.com">
+  <defs>
+    <bx:grid x="0" y="0" width="10" height="10"></bx:grid>
+  </defs>
+  <g transform="matrix(1, 0, 0, 1, 0, 0.023483)">
+    <path style="stroke-linecap: round; stroke-linejoin: round; fill: rgb(48, 48, 48); stroke: rgb(48, 48, 48); stroke-width: 25px;" d="M 50 249.977 C 50 249.977 189.893 181.302 250 180 C 319.586 178.493 450 250 450 250 C 450 250 319.579 321.754 250 319.977 C 189.734 318.438 50 249.977 50 249.977 Z"></path>
+    <path style="stroke-linecap: round; stroke-linejoin: round; stroke: rgb(255, 255, 255); fill: rgb(48, 48, 48); stroke-width: 5px;" d="M 50 249.977 C 50 249.977 189.893 181.302 250 180 C 319.586 178.493 450 250 450 250 C 450 250 319.579 321.754 250 319.977 C 189.734 318.438 50 249.977 50 249.977 Z"></path>
+  </g>
+  <ellipse style="stroke: rgb(48, 48, 48); fill: rgb(255, 255, 255);" cx="250" cy="250" rx="40" ry="40"></ellipse>
+  <line style="paint-order: fill; fill: rgb(186, 218, 85); stroke-linecap: round; stroke-width: 20px; stroke: rgb(255, 255, 255);" x1="100" y1="370" x2="400" y2="120"></line>
+  <line style="stroke: rgb(48, 48, 48); paint-order: fill; fill: rgb(186, 218, 85); stroke-linecap: round; stroke-width: 15px;" x1="100" y1="370" x2="400" y2="120"></line>
+</svg>

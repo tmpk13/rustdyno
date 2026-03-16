@@ -37,6 +37,6 @@
 - [ ] Add clear button for searching boards 
 - [ ] Add remove all local button
 - [ ] Add setting for disable remote repo
-
+- [ ] Separate the html from the js 
 # ?
 - [ ] integrate installer for board toolchains??

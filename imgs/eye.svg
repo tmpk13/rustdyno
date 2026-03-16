@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" xmlns:bx="https://boxy-svg.com">
+  <defs>
+    <bx:grid x="0" y="0" width="10" height="10"></bx:grid>
+  </defs>
+  <g transform="matrix(1, 0, 0, 1, 0, 0.023483)">
+    <path style="fill: none; stroke-width: 10px; stroke: rgb(48, 48, 48); stroke-linecap: round; stroke-linejoin: round;" d="M 50 249.977 C 50 249.977 189.893 181.302 250 180 C 319.586 178.493 450 250 450 250 C 450 250 319.579 321.754 250 319.977 C 189.734 318.438 50 249.977 50 249.977 Z"></path>
+  </g>
+  <ellipse style="stroke: rgb(48, 48, 48); fill: rgb(48, 48, 48);" cx="250" cy="250" rx="40" ry="40"></ellipse>
+</svg>
