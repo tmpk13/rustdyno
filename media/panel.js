@@ -131,7 +131,7 @@ function render(state) {
     // Hidden toggle button
     const hiddenToggle = document.getElementById('hiddenToggle');
     hiddenToggle.style.opacity = (_isHiddenOpen || hiddenFiles.length > 0) ? '1' : '0.5';
-    hiddenToggle.textContent = '\u25CC' + (hiddenFiles.length > 0 ? ` ${hiddenFiles.length}` : '');
+    hiddenToggle.textContent = (hiddenFiles.length > 0 ? ` ${hiddenFiles.length}` : '');
 
     // Action buttons (split vs simple based on file count)
     document.getElementById('actionBtns').innerHTML = ['build', 'flash'].map(cmd => {

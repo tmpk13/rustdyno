@@ -183,72 +183,7 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
     }
 
     private getHtml(): string {
-        const cssUri = this.view!.webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, "media", "panel.css"));
-        const jsUri = this.view!.webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, "media", "panel.js"));
-        return `<!DOCTYPE html>
-<html>
-<head>
-  <link rel="stylesheet" href="${cssUri}">
-</head>
-<body>
-  <div class="section-row">
-    <span class="label">Files</span>
-    <div style="display:flex;gap:4px">
-      <button class="icon-btn" id="hiddenToggle" onclick="toggleHidden()" title="Toggle hidden files" style="opacity:0.5">&#9676;</button>
-      <button class="icon-btn" onclick="send('refresh')" title="Refresh file list"><img id="refreshIcon" class="icon-svg"></button>
-    </div>
-  </div>
-  <div class="file-list" id="fileList"></div>
-  <div id="hiddenSection" style="display:none">
-    <div class="label" style="margin-top:4px">Hidden</div>
-    <div class="file-list" id="hiddenList"></div>
-  </div>
-  <div id="actionBtns"></div>
-  <button id="rttBtn" onclick="sendAction(this,'rtt')" class="action-button" data-tip-label="RTT Monitor" data-tip-cmd="">
-    <span class="btn-icon"><img id="rttRunIcon" class="btn-run-icon"></span>
-    <span class="btn-label">RTT Monitor</span>
-    <span class="btn-check"><img id="rttCheckIcon" class="btn-check-icon"></span>
-  </button>
-  <div class="label">Target</div>
-  <div class="cs-wrap">
-    <div class="cs-btn" onclick="toggleDrop(event,'menu-target')">
-      <span class="cs-val" id="cs-val-target">No files</span>
-      <img id="dropTarget" class="drop-icon">
-    </div>
-    <div class="drop-menu" id="menu-target"></div>
-  </div>
-  <div class="config-header" onclick="toggleConfig()">
-    <img class="config-arrow" id="configArrow">
-    <span class="config-summary" id="configSummary"></span>
-    <span id="probeDot" class="probe-dot" title="Checking..."></span>
-  </div>
-  <div id="configSection" style="display:none">
-    <div class="label" style="margin-top:6px">Board</div>
-    <div class="cs-wrap">
-      <div class="cs-btn" onclick="toggleDrop(event,'menu-board')">
-        <span class="cs-val" id="cs-val-board">-- choose a board --</span>
-        <img id="dropBoard" class="drop-icon">
-      </div>
-      <div class="drop-menu" id="menu-board"></div>
-    </div>
-    <div class="active-board" id="activeBoardLabel"></div>
-    <div class="label" id="portLabelEl">Port</div>
-    <div style="display:flex;gap:4px;margin-bottom:8px">
-      <div class="cs-wrap" style="flex:1;margin:0">
-        <div class="cs-btn" onclick="toggleDrop(event,'menu-port')">
-          <span class="cs-val" id="cs-val-port">auto</span>
-          <img id="dropPort" class="drop-icon">
-        </div>
-        <div class="drop-menu" id="menu-port">
-          <div class="drop-item drop-active" data-val="" onclick="pickPort('','auto')">-- auto --</div>
-        </div>
-      </div>
-      <button class="icon-btn" onclick="refreshPorts()" title="Refresh port list" style="flex-shrink:0"><img id="refreshPortIcon" class="icon-svg"></button>
-    </div>
-  </div>
-  <script src="${jsUri}"></script>
-</body>
-</html>`;
+        return loadHtml(this.ext, this.view!.webview, "panel.html", "panel.js");
     }
 }
 
@@ -291,27 +226,7 @@ export class NewProjectPanelProvider implements vscode.WebviewViewProvider {
     }
 
     private getHtml(): string {
-        const cssUri = this.view!.webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, "media", "panel.css"));
-        const jsUri = this.view!.webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, "media", "new-project.js"));
-        return `<!DOCTYPE html>
-<html>
-<head>
-  <link rel="stylesheet" href="${cssUri}">
-  <style>
-    .np-board { font-size:12px; opacity:0.75; margin:0 0 8px; }
-    .np-hint  { font-size:12px; opacity:0.55; font-style:italic; margin:0; }
-    code { font-family: var(--vscode-editor-font-family, monospace); }
-  </style>
-</head>
-<body>
-  <p class="np-hint" id="np-hint">Select a board with a <code>[new_project]</code> config to scaffold a project.</p>
-  <div id="np-board" style="display:none">
-    <p class="np-board">Board: <strong id="np-board-name"></strong></p>
-    <button onclick="send('newProject')">New Project&#8230;</button>
-  </div>
-  <script src="${jsUri}"></script>
-</body>
-</html>`;
+        return loadHtml(this.ext, this.view!.webview, "new-project.html", "new-project.js");
     }
 }
 
@@ -412,24 +327,6 @@ export class BoardLibraryPanelProvider implements vscode.WebviewViewProvider {
     }
 
     private getHtml(): string {
-        const cssUri = this.view!.webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, "media", "panel.css"));
-        const jsUri = this.view!.webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, "media", "library.js"));
-        return `<!DOCTYPE html>
-<html>
-<head>
-  <link rel="stylesheet" href="${cssUri}">
-</head>
-<body>
-  <div class="section-row">
-    <span class="label">Board Library</span>
-    <button class="icon-btn" onclick="load()" title="Refresh">
-      <img id="refreshIcon" class="icon-svg">
-    </button>
-  </div>
-  <input id="search" type="text" placeholder="Search boards…" oninput="filterBoards(this.value)" autocomplete="off" spellcheck="false">
-  <div id="content"><div class="lib-status">Loading…</div></div>
-  <script src="${jsUri}"></script>
-</body>
-</html>`;
+        return loadHtml(this.ext, this.view!.webview, "library.html", "library.js");
     }
 }
