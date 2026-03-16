@@ -1,0 +1,68 @@
+import * as https from "https";
+import * as fs from "fs";
+import * as path from "path";
+import * as vscode from "vscode";
+
+export interface LibraryEntry {
+    name: string;       // filename only, e.g. "stm32f4.toml"
+    path: string;       // full repo path, e.g. "stm32/stm32f4.toml"
+    downloadUrl: string;
+}
+
+function httpsGet(url: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const req = https.get(url, { headers: { "User-Agent": "rdyno-vscode/1.0" } }, (res) => {
+            if ((res.statusCode === 301 || res.statusCode === 302) && res.headers.location) {
+                httpsGet(res.headers.location).then(resolve).catch(reject);
+                return;
+            }
+            if (res.statusCode && res.statusCode >= 400) {
+                reject(new Error(`HTTP ${res.statusCode}`));
+                return;
+            }
+            let data = "";
+            res.on("data", (chunk: string) => { data += chunk; });
+            res.on("end", () => resolve(data));
+        });
+        req.on("error", reject);
+    });
+}
+
+export async function fetchLibraryList(repo: string): Promise<LibraryEntry[]> {
+    const repoInfo = JSON.parse(await httpsGet(`https://api.github.com/repos/${repo}`)) as { default_branch: string };
+    const branch = repoInfo.default_branch;
+
+    const treeData = JSON.parse(await httpsGet(
+        `https://api.github.com/repos/${repo}/git/trees/${branch}?recursive=2`
+    )) as { tree: Array<{ path: string; type: string }> };
+
+    return treeData.tree
+        .filter(i => i.type === "blob" && i.path.endsWith(".toml") && i.path.startsWith("boards/"))
+        .map(i => ({
+            name: i.path.split("/").pop()!,
+            path: i.path,
+            downloadUrl: `https://raw.githubusercontent.com/${repo}/${branch}/${i.path}`,
+        }));
+}
+
+export async function fetchAndSaveBoard(filename: string, downloadUrl: string): Promise<void> {
+    const content = await httpsGet(downloadUrl);
+    const dir = getBoardsInstallDir();
+    if (!fs.existsSync(dir)) { fs.mkdirSync(dir, { recursive: true }); }
+    fs.writeFileSync(path.join(dir, filename), content, "utf-8");
+}
+
+export function getBoardsInstallDir(): string {
+    const wsRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    const configDir = vscode.workspace.getConfiguration("embeddedRust").get<string>("boardConfigDir", ".rdyno");
+    return path.join(wsRoot ?? ".", configDir);
+}
+
+export function isBoardInstalled(filename: string): boolean {
+    return fs.existsSync(path.join(getBoardsInstallDir(), filename));
+}
+
+export function removeBoard(filename: string): void {
+    const p = path.join(getBoardsInstallDir(), filename);
+    if (fs.existsSync(p)) { fs.unlinkSync(p); }
+}

@@ -31,9 +31,9 @@ let activeBoardFile: string | undefined;
 let portOverride: string | undefined;
 
 const DEFAULT_BOARD_TOML = `[board]
-name   = "STM32F411 BlackPill"
-chip   = "STM32F411CEUx"
-target = "thumbv7em-none-eabihf"
+name   = "ESP32-C3"
+chip   = "esp32c3"
+target = "riscv32imc-unknown-none-elf"
 
 [probe]
 protocol = "Swd"
@@ -50,7 +50,7 @@ export function ensureBoardDir(): void {
   const dir = getBoardDir();
   if (fs.existsSync(dir)) { return; }
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, "stm32f4.toml"), DEFAULT_BOARD_TOML, "utf-8");
+  fs.writeFileSync(path.join(dir, "esp32c3.toml"), DEFAULT_BOARD_TOML, "utf-8");
 }
 
 function getBoardDir(): string {

@@ -3,7 +3,7 @@ import * as path from "path";
 import { exec } from "child_process";
 import { autoSelectBoard, getActiveBoard, getActiveBoardFile, getEffectivePort, getPortOverride, listBoards, selectBoardByFile, setDefaultBoardFile, setPortOverride } from "./boardConfig";
 import { getActiveFile, getCachedFiles, getHiddenFiles, hideFile, openFile, refreshFiles, reorderFiles, unhideFile } from "./filePicker";
-import { fetchLibraryList, fetchAndSaveBoard, isBoardInstalled } from "./boardLibrary";
+import { fetchLibraryList, fetchAndSaveBoard, isBoardInstalled, removeBoard } from "./boardLibrary";
 
 export class BoardPanelProvider implements vscode.WebviewViewProvider {
     public static readonly viewType = "embeddedRust.panel";
@@ -362,7 +362,10 @@ export class BoardLibraryPanelProvider implements vscode.WebviewViewProvider {
         this.view = view;
         view.webview.options = {
             enableScripts: true,
-            localResourceRoots: [vscode.Uri.joinPath(this.ext.extensionUri, "media")],
+            localResourceRoots: [
+                vscode.Uri.joinPath(this.ext.extensionUri, "media"),
+                vscode.Uri.joinPath(this.ext.extensionUri, "imgs"),
+            ],
         };
         view.webview.html = this.getHtml();
 
@@ -379,8 +382,9 @@ export class BoardLibraryPanelProvider implements vscode.WebviewViewProvider {
                         const withInstalled = entries.map(e => ({ ...e, installed: isBoardInstalled(e.name) }));
                         view.webview.postMessage({ command: "libraryList", data: withInstalled });
                     } catch (err: unknown) {
-                        const msg = err instanceof Error ? err.message : String(err);
-                        view.webview.postMessage({ command: "libraryError", data: `Failed to fetch library: ${msg}` });
+                        const errMsg = err instanceof Error ? err.message : String(err);
+                        console.error("[rdyno] fetchLibrary error:", errMsg);
+                        view.webview.postMessage({ command: "libraryError", data: `Failed to fetch library: ${errMsg}` });
                     }
                     break;
                 }
@@ -397,6 +401,12 @@ export class BoardLibraryPanelProvider implements vscode.WebviewViewProvider {
                     }
                     break;
                 }
+                case "removeBoard": {
+                    const name = msg.data as string;
+                    removeBoard(name);
+                    view.webview.postMessage({ command: "boardRemoved", data: name });
+                    break;
+                }
                 case "openSettings": {
                     vscode.commands.executeCommand("workbench.action.openSettings", "embeddedRust.boardLibraryRepo");
                     break;
@@ -407,6 +417,7 @@ export class BoardLibraryPanelProvider implements vscode.WebviewViewProvider {
 
     private getHtml(): string {
         const cssUri = this.view!.webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, "media", "panel.css"));
+        const checkUri = this.view!.webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, "imgs", "check.svg"));
         return /*html*/`<!DOCTYPE html>
 <html>
 <head>
@@ -416,7 +427,8 @@ export class BoardLibraryPanelProvider implements vscode.WebviewViewProvider {
     .lib-item:last-child { border-bottom:none; }
     .lib-name { font-size:12px; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .lib-add { width:auto; padding:2px 8px; margin:0; font-size:11px; min-height:unset; flex-shrink:0; }
-    .lib-added { width:auto; padding:2px 8px; margin:0; font-size:11px; min-height:unset; flex-shrink:0; opacity:0.5; cursor:default; background:transparent; border:1px solid var(--vscode-dropdown-border); color:var(--vscode-foreground); }
+    .lib-added { width:auto; padding:2px 4px; margin:0; min-height:unset; flex-shrink:0; opacity:0.5; cursor:default; background:transparent; border:1px solid var(--vscode-dropdown-border); display:inline-flex; align-items:center; }
+    .lib-added img { width:14px; height:14px; display:block; }
     .lib-list { border:1px solid var(--vscode-dropdown-border); border-radius:4px; margin-bottom:8px; max-height:300px; overflow-y:auto; }
     .lib-status { font-size:12px; opacity:0.6; font-style:italic; padding:8px; }
     .lib-error { font-size:12px; color:var(--vscode-errorForeground); padding:8px; }
@@ -431,16 +443,21 @@ export class BoardLibraryPanelProvider implements vscode.WebviewViewProvider {
   <div id="content"><div class="lib-status">Loading…</div></div>
   <script>
     const vscode = acquireVsCodeApi();
+    const CHECK_URI = ${JSON.stringify(checkUri.toString())};
+    let boardIndex = {};
     function send(cmd, data) { vscode.postMessage({ command: cmd, data }); }
+    function checkBtn(name) { return \`<button class="lib-added" data-board="\${esc(name)}" ondblclick="removeBoard(this)" title="Double-click to remove"><img src="\${CHECK_URI}"></button>\`; }
+    function removeBoard(btn) { const name = btn.dataset.board; btn.disabled = true; send('removeBoard', name); }
 
     function load() {
       document.getElementById('content').innerHTML = '<div class="lib-status">Loading…</div>';
       send('fetchLibrary');
     }
 
-    function addBoard(name, downloadUrl) {
-      const btn = document.querySelector('[data-board="' + CSS.escape(name) + '"]');
-      if (btn) { btn.disabled = true; btn.textContent = '…'; }
+    function addBoard(btn) {
+      const name = btn.dataset.board;
+      const downloadUrl = btn.dataset.url;
+      btn.disabled = true; btn.textContent = '…';
       send('addBoard', { name, downloadUrl });
     }
 
@@ -451,10 +468,11 @@ export class BoardLibraryPanelProvider implements vscode.WebviewViewProvider {
           document.getElementById('content').innerHTML = '<div class="lib-status">No .toml files found in repo.</div>';
           return;
         }
+        boardIndex = Object.fromEntries(msg.data.map(b => [b.name, b.downloadUrl]));
         const rows = msg.data.map(b => {
           const btn = b.installed
-            ? \`<button class="lib-added" disabled>✓</button>\`
-            : \`<button class="lib-add" data-board="\${esc(b.name)}" onclick="addBoard(\${JSON.stringify(b.name)},\${JSON.stringify(b.downloadUrl)})">+</button>\`;
+            ? checkBtn(b.name)
+            : \`<button class="lib-add" data-board="\${esc(b.name)}" data-url="\${esc(b.downloadUrl)}" onclick="addBoard(this)">+</button>\`;
           return \`<div class="lib-item"><span class="lib-name" title="\${esc(b.path)}">\${esc(b.path.replace(/\\.toml$/, ''))}</span>\${btn}</div>\`;
         }).join('');
         document.getElementById('content').innerHTML = \`<div class="lib-list">\${rows}</div>\`;
@@ -462,10 +480,13 @@ export class BoardLibraryPanelProvider implements vscode.WebviewViewProvider {
         const isConfig = msg.data.includes('No repo configured');
         document.getElementById('content').innerHTML = \`
           <div class="lib-error">\${esc(msg.data)}</div>
-          \${isConfig ? '<button class="icon-btn" style="width:auto;padding:4px 10px;font-size:12px" onclick="send(\'openSettings\')">Open Settings</button>' : ''}\`;
+          \${isConfig ? '<button class="icon-btn" style="width:auto;padding:4px 10px;font-size:12px" onclick="send(\\'openSettings\\')">Open Settings</button>' : ''}\`;
       } else if (msg.command === 'boardAdded') {
         const btn = document.querySelector('[data-board="' + CSS.escape(msg.data) + '"]');
-        if (btn) { btn.outerHTML = '<button class="lib-added" disabled>✓</button>'; }
+        if (btn) { btn.outerHTML = checkBtn(msg.data); }
+      } else if (msg.command === 'boardRemoved') {
+        const btn = document.querySelector('[data-board="' + CSS.escape(msg.data) + '"]');
+        if (btn) { btn.outerHTML = \`<button class="lib-add" data-board="\${esc(msg.data)}" data-url="\${esc(boardIndex[msg.data] || '')}" onclick="addBoard(this)">+</button>\`; }
       } else if (msg.command === 'boardError') {
         const btn = document.querySelector('[data-board="' + CSS.escape(msg.data.name) + '"]');
         if (btn) { btn.disabled = false; btn.textContent = '+'; }
