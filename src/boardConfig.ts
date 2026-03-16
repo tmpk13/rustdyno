@@ -30,6 +30,29 @@ let activeBoard: BoardConfig | undefined;
 let activeBoardFile: string | undefined;
 let portOverride: string | undefined;
 
+const DEFAULT_BOARD_TOML = `[board]
+name   = "STM32F411 BlackPill"
+chip   = "STM32F411CEUx"
+target = "thumbv7em-none-eabihf"
+
+[probe]
+protocol = "Swd"
+speed    = 4000   # kHz
+
+[flash]
+
+[rtt]
+enabled  = true
+channels = [{ up = 0, name = "Terminal" }]
+`;
+
+export function ensureBoardDir(): void {
+  const dir = getBoardDir();
+  if (fs.existsSync(dir)) { return; }
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, "stm32f4.toml"), DEFAULT_BOARD_TOML, "utf-8");
+}
+
 function getBoardDir(): string {
   const wsRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   const configDir = vscode.workspace.getConfiguration("embeddedRust").get<string>("boardConfigDir", ".rdyno");

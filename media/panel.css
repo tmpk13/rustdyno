@@ -1,13 +1,17 @@
+/* Panel root */
 body {
     padding: 10px;
     font-family: var(--vscode-font-family);
     color: var(--vscode-foreground);
 }
 
+/* Large primary action button (e.g. Run) */
 .action-button {
+    background: #4caf50;
     min-height: 5rem;
 }
 
+/* Base button */
 button {
     min-height: 2rem;
     width: 100%;
@@ -24,25 +28,60 @@ button:hover {
     background: var(--vscode-button-hoverBackground);
 }
 
-select {
-    width: 100%;
-    padding: 6px;
+/* Custom select wrapper (Target / Board / Port) */
+.cs-wrap {
+    position: relative;
     margin: 4px 0 8px;
+}
+
+/* Clickable row that looks like a select input */
+.cs-btn {
+    display: flex;
+    align-items: center;
+    padding: 6px;
     background: var(--vscode-dropdown-background);
     color: var(--vscode-dropdown-foreground);
     border: 1px solid var(--vscode-dropdown-border);
     border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
     font-family: var(--vscode-font-family);
     font-size: var(--vscode-font-size);
-    cursor: pointer;
 }
 
+.cs-btn:hover {
+    background: var(--vscode-list-hoverBackground);
+}
+
+/* Currently selected value text */
+.cs-val {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Chevron inside the custom select; rotates when open */
+.cs-btn .drop-icon {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    margin-left: 6px;
+    transition: transform 0.2s ease;
+}
+
+.cs-btn.open .drop-icon {
+    transform: rotate(-90deg);
+}
+
+/* Muted field label */
 .label {
     font-size: 12px;
     opacity: 0.7;
     margin-bottom: 4px;
 }
 
+/* Currently active board name shown below logo */
 .active-board {
     font-size: 12px;
     opacity: 0.7;
@@ -50,6 +89,7 @@ select {
     font-style: italic;
 }
 
+/* Row with a label on the left and an icon button on the right */
 .section-row {
     display: flex;
     align-items: center;
@@ -57,6 +97,7 @@ select {
     margin-bottom: 4px;
 }
 
+/* Small inline icon button (e.g. "+" add button in a section row) */
 .icon-btn {
     width: auto;
     padding: 2px 8px;
@@ -64,6 +105,7 @@ select {
     font-size: 12px;
 }
 
+/* Scrollable list of files */
 .file-list {
     max-height: 180px;
     overflow-y: auto;
@@ -72,6 +114,7 @@ select {
     border-radius: 4px;
 }
 
+/* Single row in the file list */
 .file-item {
     display: flex;
     align-items: center;
@@ -85,19 +128,23 @@ select {
     background: var(--vscode-list-hoverBackground);
 }
 
+/* Selected file */
 .file-item.active {
     background: var(--vscode-list-activeSelectionBackground);
     color: var(--vscode-list-activeSelectionForeground);
 }
 
+/* File being dragged */
 .file-item.dragging {
     opacity: 0.4;
 }
 
+/* Drop target indicator */
 .file-item.drag-over {
     border-top: 2px solid var(--vscode-focusBorder);
 }
 
+/* Truncated filename text */
 .file-name {
     font-size: 12px;
     overflow: hidden;
@@ -106,11 +153,13 @@ select {
     flex: 1;
 }
 
+/* Dimmed non-interactive file (e.g. hidden/excluded) */
 .hidden-item {
     opacity: 0.55;
     cursor: default;
 }
 
+/* Placeholder shown when file list is empty */
 .file-empty {
     font-size: 12px;
     opacity: 0.5;
@@ -118,6 +167,7 @@ select {
     font-style: italic;
 }
 
+/* × remove button inside a file row; visible only on hover */
 .remove-btn {
     visibility: hidden;
     width: auto;
@@ -141,6 +191,7 @@ select {
     background: var(--vscode-toolbar-hoverBackground) !important;
 }
 
+/* Spinner animation used by button loading state */
 @keyframes spin {
     to {
         transform: rotate(360deg);
@@ -151,6 +202,7 @@ button {
     position: relative;
 }
 
+/* Button loading / done states */
 button.loading,
 button.done {
     cursor: default;
@@ -162,6 +214,7 @@ button.done .btn-label {
     visibility: hidden;
 }
 
+/* Spinning indicator shown while loading */
 button.loading::after {
     content: '';
     position: absolute;
@@ -174,6 +227,7 @@ button.loading::after {
     animation: spin 0.7s linear infinite;
 }
 
+/* Check mark overlay shown when done */
 .btn-check {
     display: none;
     position: absolute;
@@ -188,6 +242,7 @@ button.done .btn-check {
     display: block;
 }
 
+/* Split button: main action + dropdown arrow side by side */
 .split-group {
     display: flex;
     width: 100%;
@@ -195,6 +250,7 @@ button.done .btn-check {
     position: relative;
 }
 
+/* Left (primary action) half of the split button */
 .split-main {
     flex: 1;
     margin: 0;
@@ -203,6 +259,7 @@ button.done .btn-check {
     border-radius: 4px 0 0 4px;
 }
 
+/* Right (chevron/arrow) half of the split button */
 .split-drop {
     flex-shrink: 0;
     width: 10%;
@@ -213,13 +270,13 @@ button.done .btn-check {
     font-size: 10px;
 }
 
+/* Dropdown menu that opens below the split button */
 .drop-menu {
     display: none;
     position: absolute;
     top: 100%;
     left: 0;
     right: 0;
-    height: 10%;
     z-index: 100;
     margin-top: 2px;
     max-height: 160px;
@@ -233,6 +290,7 @@ button.done .btn-check {
     display: block;
 }
 
+/* Single option row in the dropdown menu */
 .drop-item {
     padding: 5px 8px;
     font-size: 12px;
@@ -246,11 +304,13 @@ button.done .btn-check {
     background: var(--vscode-list-hoverBackground);
 }
 
+/* Currently selected dropdown item */
 .drop-item.drop-active {
     background: var(--vscode-list-activeSelectionBackground);
     color: var(--vscode-list-activeSelectionForeground);
 }
 
+/* Chevron icon inside the split-drop button; rotates when open */
 .split-drop img.drop-icon {
     width: 12px;
     height: 12px;
@@ -262,24 +322,26 @@ button.done .btn-check {
     transform: rotate(-180deg);
 }
 
+/* Icons inside buttons */
 .btn-run-icon {
-    width: 14px;
-    height: 14px;
+    width: 2rem;
+    height: 2rem;
     display: block;
 }
 
 .btn-check-icon {
-    width: 16px;
-    height: 14px;
+    width: 2rem;
+    height: 2rem;
     display: block;
 }
 
 .icon-svg {
-    width: 14px;
-    height: 14px;
+    width: 2rem;
+    height: 2rem;
     display: block;
 }
 
+/* Collapsible config section header row */
 .config-header {
     display: flex;
     align-items: center;
@@ -296,6 +358,7 @@ button.done .btn-check {
     background: var(--vscode-list-hoverBackground);
 }
 
+/* Arrow that rotates when the config section expands */
 .config-arrow {
     width: 10px;
     height: 10px;
@@ -310,6 +373,7 @@ button.done .btn-check {
     transform: rotate(0deg);
 }
 
+/* Truncated summary text shown in the collapsed config header */
 .config-summary {
     opacity: 0.75;
     overflow: hidden;
@@ -318,6 +382,7 @@ button.done .btn-check {
     flex: 1;
 }
 
+/* Small status dot indicating probe connection state */
 .probe-dot {
     width: 7px;
     height: 7px;
@@ -337,12 +402,14 @@ button.done .btn-check {
     opacity: 0.25;
 }
 
+/* Logo image at the top of the panel */
 .dyno-logo {
     display: block;
     width: 100%;
     margin-bottom: 8px;
 }
 
+/* Secondary "New project" button below the logo */
 .new-project-btn {
     background: var(--vscode-button-secondaryBackground);
     color: var(--vscode-button-secondaryForeground);
@@ -355,6 +422,7 @@ button.done .btn-check {
     background: var(--vscode-button-secondaryHoverBackground);
 }
 
+/* Floating tooltip shown on button hover (displays e.g. file path) */
 .btn-tooltip {
     position: fixed;
     background: var(--vscode-editorHoverWidget-background);
@@ -371,6 +439,7 @@ button.done .btn-check {
     display: none;
 }
 
+/* Icon wrapper inside a button label */
 .btn-icon {
     display: inline-flex;
     align-items: center;

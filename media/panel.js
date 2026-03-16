@@ -27,7 +27,7 @@ function toggleDrop(e, id) {
 }
 function closeDrops() {
     document.querySelectorAll('.drop-menu.open').forEach(m => m.classList.remove('open'));
-    document.querySelectorAll('.split-drop.open').forEach(b => b.classList.remove('open'));
+    document.querySelectorAll('.split-drop.open, .cs-btn.open').forEach(b => b.classList.remove('open'));
 }
 function pickTarget(file, cmd) {
     closeDrops();
@@ -56,25 +56,38 @@ function toggleHidden() {
     btn.style.opacity = opening ? '1' : (window.HIDDEN_COUNT > 0 ? '1' : '0.5');
 }
 
+function safeHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 function refreshPorts() {
     send('listPorts');
 }
 
-function onPortChange(val) {
+function pickPort(val, label) {
+    window.CURRENT_PORT = val;
+    document.querySelectorAll('#menu-port .drop-item').forEach(el => {
+        el.classList.toggle('drop-active', el.dataset.val === val);
+    });
+    const valEl = document.getElementById('cs-val-port');
+    if (valEl) valEl.textContent = label || 'auto';
+    closeDrops();
     send('setPort', val);
 }
 
 window.addEventListener('message', e => {
     const msg = e.data;
     if (msg.command === 'ports') {
-        const sel = document.getElementById('portSelect');
-        if (!sel) { return; }
+        const menu = document.getElementById('menu-port');
+        const valEl = document.getElementById('cs-val-port');
+        if (!menu) { return; }
         const cur = window.CURRENT_PORT || '';
-        sel.innerHTML = '<option value="">-- auto --</option>' +
-            msg.data.map(p => `<option value="${p.id}"${p.id === cur ? ' selected' : ''}>${p.label}</option>`).join('');
-        if (cur && !msg.data.find(p => p.id === cur)) {
-            sel.innerHTML += `<option value="${cur}" selected>${cur}</option>`;
-        }
+        const ports = msg.data;
+        const extra = cur && !ports.find(p => p.id === cur) ? [{ id: cur, label: cur }] : [];
+        menu.innerHTML = [{ id: '', label: '-- auto --' }, ...ports, ...extra]
+            .map(p => `<div class="drop-item${p.id === cur ? ' drop-active' : ''}" data-val="${safeHtml(p.id)}" onclick="pickPort(${JSON.stringify(p.id)},${JSON.stringify(p.label)})">${safeHtml(p.label)}</div>`)
+            .join('');
+        if (valEl) valEl.textContent = cur ? (ports.find(p => p.id === cur)?.label ?? cur) : 'auto';
     } else if (msg.command === 'probeStatus') {
         const dot = document.getElementById('probeDot');
         if (!dot) { return; }

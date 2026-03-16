@@ -28,3 +28,6 @@
 - [ ] Add config items options
 - [ ] Have git repo for list of configs
 - [ ] Have folders for boards, split up the toml files
+- [ ] Add git files automatically, set rules
+- [ ] Add STOP feature probe-rs `probe-rs reset --halt`?
+- [ ] 
