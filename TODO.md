@@ -105,6 +105,7 @@
 - [ ] Support multiple board targets in one upload loop through
 
 - [ ] File checker button
+- [ ] make it so that naming the new project is from a text input not popup
 
 # ?
 - [ ] integrate installer for board toolchains??
