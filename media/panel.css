@@ -260,16 +260,24 @@ body {
     font-size: 0.75rem;
     background: var(--rd-input-bg);
     color: var(--rd-input-fg);
-    border: 1px solid var(--rd-input-border);
+    border: 1px solid rgba(128, 128, 128, 0.35);
     border-radius: 0.1875rem;
     outline: none;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.12s ease;
+}
+
+#search:hover,
+#np-search:hover {
+    border-color: rgba(255, 255, 255, 0.75) !important;
+    outline: none !important;
 }
 
 #search:focus,
 #np-search:focus {
-    outline: 0.15rem solid var(--rd-focus);
+    outline: 2px solid var(--rd-focus) !important;
     outline-offset: -1px;
+    border-color: transparent !important;
 }
 
 /* Base button */
@@ -888,22 +896,30 @@ body.edit-mode .panel-section > *:not(.edit-bar) {
     font-size: 0.75rem;
     background: var(--rd-input-bg);
     color: var(--rd-input-fg);
-    border: 1px solid var(--rd-input-border);
+    border: 1px solid rgba(128, 128, 128, 0.35);
     border-radius: 0.1875rem;
     outline: none;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.12s ease;
+}
+
+#np-name:hover,
+#np-location:hover {
+    border-color: rgba(255, 255, 255, 0.75) !important;
+    outline: none !important;
 }
 
 #np-name:focus,
 #np-location:focus {
-    outline: 0.15rem solid var(--rd-focus);
+    outline: 2px solid var(--rd-focus) !important;
     outline-offset: -1px;
+    border-color: transparent !important;
 }
 
 #np-name.np-error,
 #np-location.np-error {
-    border-color: var(--rd-error-border);
-    outline: none;
+    border-color: var(--rd-error-border) !important;
+    outline: none !important;
 }
 
 .np-board-item {
@@ -994,18 +1010,25 @@ button.done .btn-icon {
     min-width: 0;
     background: var(--rd-input-bg);
     color: var(--rd-input-fg);
-    border: 1px solid var(--rd-input-border);
+    border: 1px solid rgba(128, 128, 128, 0.35);
     padding: 2px 5px;
     font-size: 0.75rem;
     font-family: var(--rd-font);
     border-radius: 2px;
     height: 1.5rem;
     box-sizing: border-box;
+    transition: border-color 0.12s ease;
+}
+
+.probe-name-input:hover {
+    border-color: rgba(255, 255, 255, 0.75) !important;
+    outline: none !important;
 }
 
 .probe-name-input:focus {
-    outline: 1px solid var(--rd-focus);
+    outline: 2px solid var(--rd-focus) !important;
     outline-offset: -1px;
+    border-color: transparent !important;
 }
 
 .probe-naming-right {
@@ -1115,7 +1138,6 @@ button.done .btn-icon {
 }
 
 /* Universal hover border for all selectable UI elements */
-input:hover,
 .cs-btn:hover,
 .file-item:hover,
 .drop-item:hover,
