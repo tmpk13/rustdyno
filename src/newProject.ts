@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { exec } from "child_process";
 
-import { getActiveBoard, setBoardElf, NewProjectConfig } from "./boardConfig";
+import { getActiveBoard, getActiveBoardFile, setBoardElf, NewProjectConfig } from "./boardConfig";
 
 export async function newProject(): Promise<void> {
     const board = getActiveBoard();
@@ -15,16 +15,16 @@ export async function newProject(): Promise<void> {
         vscode.window.showErrorMessage(`Board "${board.board.name}" has no [new_project] section defined.`);
         return;
     }
-    await runNewProject(board.new_project, board.board.name, board.probe?.protocol, undefined, undefined);
+    await runNewProject(board.new_project, board.board.name, board.probe?.protocol, getActiveBoardFile(), undefined, undefined);
 }
 
 export async function createNewProject(name: string, parentDir: string): Promise<void> {
     const board = getActiveBoard();
     if (!board?.new_project) { return; }
-    await runNewProject(board.new_project, board.board.name, board.probe?.protocol, name, parentDir);
+    await runNewProject(board.new_project, board.board.name, board.probe?.protocol, getActiveBoardFile(), name, parentDir);
 }
 
-async function runNewProject(np: NewProjectConfig, boardName: string, protocol: string | undefined, nameArg: string | undefined, parentDirArg: string | undefined): Promise<void> {
+async function runNewProject(np: NewProjectConfig, boardName: string, protocol: string | undefined, boardFile: string | undefined, nameArg: string | undefined, parentDirArg: string | undefined): Promise<void> {
     let parentDir = parentDirArg;
     let name = nameArg;
 
@@ -60,7 +60,7 @@ async function runNewProject(np: NewProjectConfig, boardName: string, protocol: 
             await runCargoNew(parentDir, name);
 
             progress.report({ message: "Writing project files…" });
-            writeProjectFiles(projectDir, np.files ?? [], protocol);
+            writeProjectFiles(projectDir, np.files ?? [], protocol, boardFile);
 
             progress.report({ message: "Adding dependencies…" });
             if (np.dependencies) {
@@ -90,11 +90,13 @@ function runCargoNew(parentDir: string, name: string): Promise<void> {
     });
 }
 
-function writeProjectFiles(projectDir: string, files: { path: string; content: string }[], protocol?: string): void {
+function writeProjectFiles(projectDir: string, files: { path: string; content: string }[], protocol?: string, boardFile?: string): void {
     for (const f of files) {
         const dest = path.join(projectDir, f.path);
         fs.mkdirSync(path.dirname(dest), { recursive: true });
-        const content = protocol ? f.content.replaceAll("{{PROTOCOL}}", protocol) : f.content;
+        let content = f.content;
+        if (protocol) { content = content.replaceAll("{{PROTOCOL}}", protocol); }
+        if (boardFile) { content = content.replaceAll("{{BOARD_FILE}}", boardFile); }
         fs.writeFileSync(dest, content, "utf-8");
     }
 }

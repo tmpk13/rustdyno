@@ -115,5 +115,10 @@
 
 - [ ] Esp is selected board even when selecting others in the new project section
 
+- [ ] Make cache only used if no internet
+    - [ ] add toggle button to use cache or not
+    - [ ] make so directory can be used as remote repo
+    - [ ] make so cache dir can be set to draw from
+
 # ?
 - [ ] integrate installer for board toolchains??

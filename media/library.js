@@ -1,7 +1,6 @@
 const vscode = acquireVsCodeApi();
 let CHECK_URI = '';
 let DOWN_URI = '';
-let PLUS_URI = '';
 let REFRESH_URI = '';
 
 let boardIndex = {};
@@ -9,14 +8,13 @@ let allBoards = [];
 
 function send(cmd, data) { vscode.postMessage({ command: cmd, data }); }
 function checkBtn(name) { return `<button class="lib-added" data-board="${esc(name)}" ondblclick="removeBoard(this)" title="Double-click to remove from project"><img src="${CHECK_URI}"></button>`; }
-function addBtn(name) { return `<button class="lib-add" data-board="${esc(name)}" onclick="addToProject(this)" title="Add to project"><img src="${PLUS_URI}"></button>`; }
-function downBtn(name, url) { return `<button class="lib-down" data-board="${esc(name)}" data-url="${esc(url)}" onclick="downloadBoard(this)" title="Download to cache"><img src="${DOWN_URI}"></button>`; }
+function downBtn(name, url) { return `<button class="lib-down" data-board="${esc(name)}" data-url="${esc(url)}" onclick="downloadBoard(this)" title="Add to project"><img src="${DOWN_URI}"></button>`; }
 function updateBtn(name, url) { return `<button class="lib-update" data-board="${esc(name)}" data-url="${esc(url)}" onclick="updateBoard(this)" title="Update to latest version"><img src="${REFRESH_URI}"></button>`; }
 function stateBtns(b) {
     if (b.inWorkspace) {
         return `<span class="lib-btns">${checkBtn(b.name)}${b.hasUpdate ? updateBtn(b.name, b.downloadUrl) : ''}</span>`;
     }
-    return `<span class="lib-btns">${b.cached ? addBtn(b.name) : downBtn(b.name, b.downloadUrl)}</span>`;
+    return `<span class="lib-btns">${downBtn(b.name, b.downloadUrl)}</span>`;
 }
 function removeBoard(btn) { const name = btn.dataset.board; btn.disabled = true; send('removeBoard', name); }
 
@@ -120,12 +118,6 @@ function downloadBoard(btn) {
     send('downloadBoard', { name, downloadUrl });
 }
 
-function addToProject(btn) {
-    const name = btn.dataset.board;
-    btn.disabled = true; btn.innerHTML = '…';
-    send('addToProject', name);
-}
-
 function updateBoard(btn) {
     const name = btn.dataset.board;
     const downloadUrl = btn.dataset.url;
@@ -144,8 +136,7 @@ window.addEventListener('message', e => {
     if (msg.command === 'setup') {
         CHECK_URI = msg.uris.check;
         DOWN_URI = msg.uris.down;
-        PLUS_URI = msg.uris.plus;
-        REFRESH_URI = msg.uris.refresh;
+REFRESH_URI = msg.uris.refresh;
         const refreshIcon = document.getElementById('refreshIcon');
         if (refreshIcon) { refreshIcon.src = msg.uris.refresh; }
         const downIcon = document.getElementById('downIcon');
@@ -165,13 +156,6 @@ window.addEventListener('message', e => {
         document.getElementById('content').innerHTML = `
           <div class="lib-error">${esc(msg.data)}</div>
           ${isConfig ? '<button class="icon-btn" onclick="send(\'openSettings\')">Open Settings</button>' : ''}`;
-    } else if (msg.command === 'boardDownloaded') {
-        const idx = allBoards.findIndex(b => b.name === msg.data);
-        if (idx !== -1) {
-            allBoards[idx] = { ...allBoards[idx], cached: true };
-            const c = findBtnsContainer(msg.data);
-            if (c) { c.outerHTML = stateBtns(allBoards[idx]); }
-        }
     } else if (msg.command === 'boardAddedToProject') {
         const idx = allBoards.findIndex(b => b.name === msg.data);
         if (idx !== -1) {

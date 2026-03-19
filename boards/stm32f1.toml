@@ -30,6 +30,12 @@ rtt-target   = "0.6"
 stm32f1xx-hal = { version = "0.11", features = ["stm32f103", "rt"] }
 
 [[new_project.files]]
+path    = "rustdyno.toml"
+content = """
+default="stm32f1.toml"
+"""
+
+[[new_project.files]]
 path    = "src/main.rs"
 content = """
 #![no_std]

@@ -58,13 +58,6 @@ export async function fetchLibraryList(repo: string): Promise<LibraryEntry[]> {
         }));
 }
 
-export async function fetchAndSaveBoard(filename: string, downloadUrl: string): Promise<void> {
-    const content = await httpsGet(downloadUrl);
-    const dir = getBoardsInstallDir();
-    if (!fs.existsSync(dir)) { fs.mkdirSync(dir, { recursive: true }); }
-    fs.writeFileSync(path.join(dir, filename), content, "utf-8");
-}
-
 export function getBoardsInstallDir(): string {
     if (_globalBoardsDir) { return _globalBoardsDir; }
     const wsRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -72,8 +65,37 @@ export function getBoardsInstallDir(): string {
     return path.join(wsRoot ?? ".", configDir);
 }
 
-export function isBoardCached(filename: string): boolean {
-    return fs.existsSync(path.join(getBoardsInstallDir(), filename));
+export async function downloadBoardToWorkspace(filename: string, downloadUrl: string): Promise<void> {
+    const content = await httpsGet(downloadUrl);
+    const wsDir = getWorkspaceBoardDir();
+    if (!wsDir) { throw new Error("No workspace open"); }
+    if (!fs.existsSync(wsDir)) { fs.mkdirSync(wsDir, { recursive: true }); }
+    fs.writeFileSync(path.join(wsDir, filename), content, "utf-8");
+    // Update cache copy
+    const cacheDir = getBoardsInstallDir();
+    if (cacheDir !== wsDir) {
+        if (!fs.existsSync(cacheDir)) { fs.mkdirSync(cacheDir, { recursive: true }); }
+        fs.writeFileSync(path.join(cacheDir, filename), content, "utf-8");
+    }
+}
+
+export function listCachedBoards(): string[] {
+    const dir = getBoardsInstallDir();
+    if (!fs.existsSync(dir)) { return []; }
+    return fs.readdirSync(dir).filter(f => f.endsWith(".toml"));
+}
+
+function copyCachedBoardToWorkspace(filename: string): void {
+    const src = path.join(getBoardsInstallDir(), filename);
+    if (!fs.existsSync(src)) { throw new Error(`Board not in cache: ${filename}`); }
+    const dir = getWorkspaceBoardDir();
+    if (!dir) { throw new Error("No workspace open"); }
+    if (!fs.existsSync(dir)) { fs.mkdirSync(dir, { recursive: true }); }
+    fs.copyFileSync(src, path.join(dir, filename));
+}
+
+export function addBoardFromCache(filename: string): void {
+    copyCachedBoardToWorkspace(filename);
 }
 
 function getWorkspaceBoardDir(): string | undefined {
@@ -86,15 +108,6 @@ function getWorkspaceBoardDir(): string | undefined {
 export function isBoardInWorkspace(filename: string): boolean {
     const dir = getWorkspaceBoardDir();
     return !!dir && fs.existsSync(path.join(dir, filename));
-}
-
-export function copyBoardToWorkspace(filename: string): void {
-    const src = path.join(getBoardsInstallDir(), filename);
-    if (!fs.existsSync(src)) { throw new Error(`Board not cached: ${filename}`); }
-    const dir = getWorkspaceBoardDir();
-    if (!dir) { throw new Error("No workspace open"); }
-    if (!fs.existsSync(dir)) { fs.mkdirSync(dir, { recursive: true }); }
-    fs.copyFileSync(src, path.join(dir, filename));
 }
 
 export function removeBoard(filename: string): void {

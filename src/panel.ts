@@ -10,7 +10,7 @@ const DEFAULT_ACTIONS: Record<string, { label: string; color: string }> = {
     rtt:   { label: "RTT Monitor", color: "#4caf50" },
 };
 import { getActiveFile, getCachedFiles, getHiddenFiles, hideFile, openFile, refreshFiles, reorderFiles, unhideFile } from "./filePicker";
-import { fetchLibraryList, fetchAndSaveBoard, isBoardCached, isBoardInWorkspace, copyBoardToWorkspace, removeBoard, fetchBoardContent, getWorkspaceBoardContent, updateBoardInWorkspace } from "./boardLibrary";
+import { fetchLibraryList, downloadBoardToWorkspace, addBoardFromCache, listCachedBoards, isBoardInWorkspace, removeBoard, fetchBoardContent, getWorkspaceBoardContent, updateBoardInWorkspace } from "./boardLibrary";
 import { createNewProject } from "./newProject";
 
 function loadHtml(ext: vscode.ExtensionContext, webview: vscode.Webview, htmlFile: string, jsFile: string): string {
@@ -343,18 +343,26 @@ export class BoardLibraryPanelProvider implements vscode.WebviewViewProvider {
                         return;
                     }
                     try {
-                        const entries = await fetchLibraryList(repo);
+                        let entries: import("./boardLibrary").LibraryEntry[];
+                        let offline = false;
+                        try {
+                            entries = await fetchLibraryList(repo);
+                        } catch {
+                            // Internet unavailable — fall back to local cache
+                            offline = true;
+                            entries = listCachedBoards().map(name => ({ name, path: name, downloadUrl: "" }));
+                        }
                         const withStatus = await Promise.all(entries.map(async e => {
                             const inWorkspace = isBoardInWorkspace(e.name);
                             let hasUpdate = false;
-                            if (inWorkspace) {
+                            if (inWorkspace && !offline) {
                                 try {
                                     const localContent = getWorkspaceBoardContent(e.name);
                                     const remoteContent = await fetchBoardContent(e.downloadUrl);
                                     hasUpdate = localContent !== undefined && localContent.trim() !== remoteContent.trim();
                                 } catch { /* ignore update check failure */ }
                             }
-                            return { ...e, cached: isBoardCached(e.name), inWorkspace, hasUpdate };
+                            return { ...e, inWorkspace, hasUpdate };
                         }));
                         view.webview.postMessage({ command: "libraryList", data: withStatus });
                     } catch (err: unknown) {
@@ -367,25 +375,18 @@ export class BoardLibraryPanelProvider implements vscode.WebviewViewProvider {
                 case "downloadBoard": {
                     const { name, downloadUrl } = msg.data as { name: string; downloadUrl: string };
                     try {
-                        await fetchAndSaveBoard(name, downloadUrl);
-                        view.webview.postMessage({ command: "boardDownloaded", data: name });
-                    } catch (err: unknown) {
-                        const errMsg = err instanceof Error ? err.message : String(err);
-                        view.webview.postMessage({ command: "boardError", data: { name, error: errMsg } });
-                        vscode.window.showErrorMessage(`Failed to download board: ${errMsg}`);
-                    }
-                    break;
-                }
-                case "addToProject": {
-                    const name = msg.data as string;
-                    try {
-                        copyBoardToWorkspace(name);
+                        if (downloadUrl) {
+                            await downloadBoardToWorkspace(name, downloadUrl);
+                        } else {
+                            // Offline fallback: copy from cache
+                            addBoardFromCache(name);
+                        }
                         view.webview.postMessage({ command: "boardAddedToProject", data: name });
                         vscode.window.showInformationMessage(`Board added to project: ${name}`);
                     } catch (err: unknown) {
                         const errMsg = err instanceof Error ? err.message : String(err);
                         view.webview.postMessage({ command: "boardError", data: { name, error: errMsg } });
-                        vscode.window.showErrorMessage(`Failed to add board to project: ${errMsg}`);
+                        vscode.window.showErrorMessage(`Failed to download board: ${errMsg}`);
                     }
                     break;
                 }
@@ -444,7 +445,6 @@ export class BoardLibraryPanelProvider implements vscode.WebviewViewProvider {
             uris: {
                 check: uri("imgs/check.svg"),
                 down: uri("imgs/down.svg"),
-                plus: uri("imgs/plus.svg"),
                 refresh: uri("imgs/refresh.svg"),
             },
         });

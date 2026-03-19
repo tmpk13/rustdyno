@@ -1,7 +1,7 @@
 # rdyno Board Config Reference
 
-Board configs live in `.rdyno/*.toml` (one file per board). The workspace
-state file `rdyno.toml` is also in this folder but is managed automatically.
+Board configs live in `.rustdyno/*.toml` (one file per board). The workspace
+state file `rustdyno.toml` is also in this folder but is managed automatically.
 
 ---
 
@@ -127,6 +127,33 @@ project from this board config. All keys are optional.
 | `path`    | string | Relative path from the project root              |
 | `content` | string | Full text content of the file (multiline strings supported) |
 
+File content supports template variables that are substituted at project creation time:
+
+| Variable          | Replaced with                                          |
+|-------------------|--------------------------------------------------------|
+| `{{PROTOCOL}}`    | The probe protocol from `[probe] protocol`             |
+| `{{BOARD_FILE}}`  | The board config filename (e.g. `microbit-v2.toml`)    |
+
+Use `{{BOARD_FILE}}` in a generated `rustdyno.toml` to pre-select the correct board:
+
+```toml
+[[new_project.files]]
+path    = "rustdyno.toml"
+content = """
+default="{{BOARD_FILE}}"
+"""
+```
+
+Or hardcode the filename directly if the board config name is stable:
+
+```toml
+[[new_project.files]]
+path    = "rustdyno.toml"
+content = """
+default="my-board.toml"
+"""
+```
+
 ### Example
 
 ```toml
@@ -165,18 +192,22 @@ target = "thumbv7em-none-eabihf"
 
 ---
 
-## `rdyno.toml` (workspace state)
+## `rustdyno.toml` (workspace state)
 
-Managed automatically by the extension. Do not edit by hand.
+Managed automatically by the extension. The `default` key is written by
+`[[new_project.files]]` at project creation and can also be edited by hand
+to change the active board.
 
-| Key       | Type            | Description                                      |
-|-----------|-----------------|--------------------------------------------------|
-| `default` | string          | Filename of the board selected by default        |
-| `hidden`  | array of strings | Files hidden in the file picker                 |
-| `order`   | array of strings | Custom ordering of files in the file picker     |
+| Key       | Type             | Description                                      |
+|-----------|------------------|--------------------------------------------------|
+| `default` | string           | Filename of the board selected by default        |
+| `target`  | string           | Relative path of the active file in the picker   |
+| `hidden`  | array of strings | Files hidden in the file picker                  |
+| `order`   | array of strings | Custom ordering of files in the file picker      |
 
 ```toml
-default = "stm32f4.toml"
+default = "stm32f1.toml"
+target  = "src/main.rs"
 hidden  = ["scratch.rs"]
 order   = ["main.rs", "lib.rs"]
 ```

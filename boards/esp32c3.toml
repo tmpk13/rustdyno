@@ -22,6 +22,12 @@ log         = "0.4"
 embuild = "0.33"
 
 [[new_project.files]]
+path    = "rustdyno.toml"
+content = """
+default="esp32c3.toml"
+"""
+
+[[new_project.files]]
 path    = "src/main.rs"
 content = """
 use anyhow::Result;

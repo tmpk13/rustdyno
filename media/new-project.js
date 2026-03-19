@@ -76,6 +76,8 @@ function filterBoards(query) {
 }
 
 function selectBoard(file) {
+    activeBoardFile = file;
+    renderBoards(allBoards);
     send('selectBoard', file);
 }
 
