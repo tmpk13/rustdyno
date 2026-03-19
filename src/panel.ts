@@ -11,6 +11,7 @@ const DEFAULT_ACTIONS: Record<string, { label: string; color: string }> = {
 };
 import { getActiveFile, getCachedFiles, getHiddenFiles, hideFile, openFile, refreshFiles, reorderFiles, unhideFile } from "./filePicker";
 import { fetchLibraryList, fetchAndSaveBoard, isBoardCached, isBoardInWorkspace, copyBoardToWorkspace, removeBoard, fetchBoardContent, getWorkspaceBoardContent, updateBoardInWorkspace } from "./boardLibrary";
+import { createNewProject } from "./newProject";
 
 function loadHtml(ext: vscode.ExtensionContext, webview: vscode.Webview, htmlFile: string, jsFile: string): string {
     const mediaPath = vscode.Uri.joinPath(ext.extensionUri, "media");
@@ -263,15 +264,26 @@ export class NewProjectPanelProvider implements vscode.WebviewViewProvider {
         };
         view.webview.html = this.getHtml();
         this.sendState();
-        view.webview.onDidReceiveMessage((msg) => {
-            if (msg.command === "newProject") {
-                vscode.commands.executeCommand("rustdyno.newProject");
-            } else if (msg.command === "refreshBoards") {
+        view.webview.onDidReceiveMessage(async (msg) => {
+            if (msg.command === "refreshBoards") {
                 this.sendState();
             } else if (msg.command === "selectBoard") {
                 selectBoardByFile(msg.data);
                 setDefaultBoardFile(msg.data);
                 this.sendState();
+            } else if (msg.command === "browseFolder") {
+                const picked = await vscode.window.showOpenDialog({
+                    canSelectFiles: false,
+                    canSelectFolders: true,
+                    canSelectMany: false,
+                    openLabel: "Select folder",
+                });
+                if (picked?.[0]) {
+                    view.webview.postMessage({ command: "browseResult", data: picked[0].fsPath });
+                }
+            } else if (msg.command === "createProject") {
+                const { name, location } = msg.data as { name: string; location: string };
+                createNewProject(name, location);
             }
         });
     }

@@ -79,6 +79,28 @@ function selectBoard(file) {
     send('selectBoard', file);
 }
 
+function browseLocation() {
+    send('browseFolder');
+}
+
+function clearError(el) {
+    el.classList.remove('np-error');
+}
+
+function createProject() {
+    const nameEl = document.getElementById('np-name');
+    const locEl = document.getElementById('np-location');
+    const name = nameEl.value.trim();
+    const location = locEl.value.trim();
+    nameEl.classList.remove('np-error');
+    locEl.classList.remove('np-error');
+    let valid = true;
+    if (!name || !/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(name)) { nameEl.classList.add('np-error'); valid = false; }
+    if (!location) { locEl.classList.add('np-error'); valid = false; }
+    if (!valid) { return; }
+    send('createProject', { name, location });
+}
+
 function spinRefresh(id) {
     const el = document.getElementById(id);
     if (!el) { return; }
@@ -106,6 +128,10 @@ window.addEventListener('message', e => {
 
         document.getElementById('np-hint').style.display = hasConfig ? 'none' : '';
         document.getElementById('np-action').style.display = hasConfig ? '' : 'none';
+    } else if (msg.command === 'browseResult') {
+        const locEl = document.getElementById('np-location');
+        locEl.value = msg.data;
+        locEl.classList.remove('np-error');
     }
 });
 

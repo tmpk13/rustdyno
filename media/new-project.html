@@ -14,7 +14,14 @@
   <div id="np-board-list" class="lib-list" style="margin-bottom:8px;max-height:200px"></div>
   <p class="np-hint" id="np-hint">Select a board with a <code>[new_project]</code> config to scaffold a project.</p>
   <div id="np-action" style="display:none">
-    <button onclick="send('newProject')">New Project&#8230;</button>
+    <span class="label">Project Name</span>
+    <input id="np-name" type="text" placeholder="my-embedded-app" autocomplete="off" spellcheck="false" oninput="clearError(this)">
+    <span class="label" style="margin-top:6px;display:block">Location</span>
+    <div class="np-location-row">
+      <input id="np-location" type="text" placeholder="Select folder&#8230;" readonly oninput="clearError(this)">
+      <button class="np-browse-btn" onclick="browseLocation()" title="Browse">&#8230;</button>
+    </div>
+    <button onclick="createProject()" style="margin-top:4px">Create Project</button>
   </div>
   <script src="{{JS_URI}}"></script>
 </body>

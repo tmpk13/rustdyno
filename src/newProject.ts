@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { exec } from "child_process";
 
-import { getActiveBoard, setBoardElf } from "./boardConfig";
+import { getActiveBoard, setBoardElf, NewProjectConfig } from "./boardConfig";
 
 export async function newProject(): Promise<void> {
     const board = getActiveBoard();
@@ -15,27 +15,41 @@ export async function newProject(): Promise<void> {
         vscode.window.showErrorMessage(`Board "${board.board.name}" has no [new_project] section defined.`);
         return;
     }
-
     const np = board.new_project;
+    await runNewProject(np, board.board.name, undefined, undefined);
+}
 
-    // Ask for parent directory
-    const picked = await vscode.window.showOpenDialog({
-        canSelectFiles: false,
-        canSelectFolders: true,
-        canSelectMany: false,
-        openLabel: "Create project here",
-        title: "Choose parent folder for new project",
-    });
-    if (!picked || picked.length === 0) { return; }
-    const parentDir = picked[0].fsPath;
+export async function createNewProject(name: string, parentDir: string): Promise<void> {
+    const board = getActiveBoard();
+    if (!board?.new_project) { return; }
+    await runNewProject(board.new_project, board.board.name, name, parentDir);
+}
 
-    // Ask for project name
-    const name = await vscode.window.showInputBox({
-        prompt: "Project name",
-        placeHolder: "my-embedded-app",
-        validateInput: (v) => /^[a-zA-Z][a-zA-Z0-9_-]*$/.test(v) ? undefined : "Use letters, numbers, _ or - (must start with a letter)",
-    });
-    if (!name) { return; }
+async function runNewProject(np: NewProjectConfig, boardName: string, nameArg: string | undefined, parentDirArg: string | undefined): Promise<void> {
+    let parentDir = parentDirArg;
+    let name = nameArg;
+
+    if (!parentDir) {
+        const picked = await vscode.window.showOpenDialog({
+            canSelectFiles: false,
+            canSelectFolders: true,
+            canSelectMany: false,
+            openLabel: "Create project here",
+            title: "Choose parent folder for new project",
+        });
+        if (!picked || picked.length === 0) { return; }
+        parentDir = picked[0].fsPath;
+    }
+
+    if (!name) {
+        const input = await vscode.window.showInputBox({
+            prompt: "Project name",
+            placeHolder: "my-embedded-app",
+            validateInput: (v) => /^[a-zA-Z][a-zA-Z0-9_-]*$/.test(v) ? undefined : "Use letters, numbers, _ or - (must start with a letter)",
+        });
+        if (!input) { return; }
+        name = input;
+    }
 
     const projectDir = path.join(parentDir, name);
     setBoardElf(name);
@@ -60,7 +74,7 @@ export async function newProject(): Promise<void> {
         }
     );
 
-    vscode.window.showInformationMessage(`Project "${name}" created for ${board.board.name}.`);
+    vscode.window.showInformationMessage(`Project "${name}" created for ${boardName}.`);
     vscode.commands.executeCommand("vscode.openFolder", vscode.Uri.file(projectDir), { forceNewWindow: false });
 }
 
