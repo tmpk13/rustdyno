@@ -3,13 +3,13 @@
 <img width="200rem" alt="Rust crab and dynosaur" src="imgs/dyno.png">  
 
 Rust running for embedded projects from VSCode
+
 github.com/tmpk13/rustdyno
+
 <hr>
 
 ### Requires probe-rs
 [probe-rs](https://probe.rs/)
-
-
 
 
 
