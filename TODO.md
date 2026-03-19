@@ -4,31 +4,31 @@
 
 - [ ] Add port selection
 - [ ] Bind loading on panel buttons to something
-- [ ] Add run commands option for toml
+- [x] Add run commands option for toml
 - [x] Make the layout not wobble on hover
 - [x] Make default board get selected
-- [ ] Rotate the dropdown icon
+- [x] Rotate the dropdown icon
 - [ ] Add SVG icons
     - [x] Dropdown
-    - [ ] Run
+    - [x] Run
     - [ ] Stop
     - [ ] Debug
 - [x] Add one menu for selecting config options
-- [ ] have config options in toml
+- [x] have config options in toml
 - [x] Add Port name overflow handling
-- [ ] Port should be saved as default in the .boards file
+- [x] Port should be saved as default in the .boards file
 - [x] Make .boards folder a different name, and picker.toml
 - [ ] Toggle button for run button in status bar
 - [x] Poll serial device state to see if still connected, while not doing a command
 - [x] On hover for 2 sec show the command for build/flash
-- [ ] Generate new projects
-- [ ] Add ability to name devices
+- [x] Generate new projects
+- [x] Add ability to name devices
 - [x] Generate a `.rustdyno` file if it does not exist
 - [x] Have git repo for list of configs
 - [ ] Have folders for boards, split up the toml files
 - [ ] Add git files automatically, set rules
 - [ ] Add STOP feature probe-rs `probe-rs reset --halt`?
-- [ ] Make static reload button rotate
+- [x] Make static reload button rotate
 - [x] Trigram + Jaro-Winkler fuzzy search for the boards
 - [ ] Make it flip orientation when it is wider than it is high
 - [ ] Board adder tool page with checkboxes to enable/disable the items. Typing in the edit field enables it 
@@ -56,17 +56,17 @@
     - [x] When closing / opening the new project the board gets unloaded
     - [x] New project section tab should have its own board selection with search
 
-- Edit mode
+- [ ] Edit mode
     - [ ] Make drag bar thicker
     - [ ] Make reset button
 - [ ] Animate check mark
-- [ ] Upload progress bar from probe-rs output
-- [ ] Reverse the hidden state
+- [x] Upload progress bar from probe-rs output
+- [x] Reverse the hidden state
 
 - [x] move edit to bottom add label
 
-- [ ] Fix hidden items count
-- [ ] Make hidden items button not low opacity by default
+- [x] Fix hidden items count
+- [x] Make hidden items button not low opacity by default
 
 - [x] Separate icons/bg color for each action
 - [x] Have options in board toml for new actions, have actions set in toml
@@ -76,7 +76,7 @@
 - [ ] Button for install probe-rs or command based on platform for user to run
 
 - [ ] Don't use swd by default on esp check others
-- [ ] poll for serial when auto is the port selection show the board that will be used name
+- [x] poll for serial when auto is the port selection show the board that will be used name
 
 - [ ] Verify the configs for new project are being used
 - [ ] Remove board/ from boards
@@ -86,7 +86,7 @@
 - [ ] sdk defaults needs to be generated
 - [ ] Add dividers
 
-- [ ] Name boards by serial id
+- [x] Name boards by serial id
 - [ ] Outline on focus outer outline that is thicker and transparent/lighter
 
 - [ ] Toggle formatting options in .cargo/config.toml

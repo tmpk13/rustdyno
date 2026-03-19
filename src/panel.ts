@@ -12,6 +12,7 @@ const DEFAULT_ACTIONS: Record<string, { label: string; color: string }> = {
 import { getActiveFile, getCachedFiles, getHiddenFiles, hideFile, openFile, refreshFiles, reorderFiles, unhideFile } from "./filePicker";
 import { fetchLibraryList, downloadBoardToWorkspace, addBoardFromCache, listCachedBoards, isBoardInWorkspace, removeBoard, fetchBoardContent, getWorkspaceBoardContent, updateBoardInWorkspace } from "./boardLibrary";
 import { createNewProject } from "./newProject";
+import { flash } from "./flasher";
 
 function loadHtml(ext: vscode.ExtensionContext, webview: vscode.Webview, htmlFile: string, jsFile: string): string {
     const mediaPath = vscode.Uri.joinPath(ext.extensionUri, "media");
@@ -58,7 +59,7 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
             if (this._pollInterval) { clearInterval(this._pollInterval); this._pollInterval = undefined; }
         });
 
-        view.webview.onDidReceiveMessage((msg) => {
+        view.webview.onDidReceiveMessage(async (msg) => {
             switch (msg.command) {
                 case "selectBoard":
                     selectBoardByFile(msg.data);
@@ -115,7 +116,9 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
                     refreshFiles().then(() => { this.sendState(); });
                     break;
                 case "build": vscode.commands.executeCommand("rustdyno.build"); break;
-                case "flash": vscode.commands.executeCommand("rustdyno.flash"); break;
+                case "flash":
+                    flash(event => view.webview.postMessage({ command: "flashProgress", data: event }));
+                    break;
                 case "rtt": vscode.commands.executeCommand("rustdyno.rtt"); break;
                 case "selectAndRun": {
                     openFile(msg.data.file);
@@ -131,6 +134,39 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
                 case "clearProbeBoard": {
                     const { probeId } = msg.data as { probeId: string };
                     clearProbeBoard(probeId);
+                    break;
+                }
+                case "installProbeRs": {
+                    const platform = process.platform;
+                    const items: vscode.QuickPickItem[] = [];
+                    if (platform !== "win32") {
+                        items.push({
+                            label: "$(terminal) Install probe-rs",
+                            description: "Linux / macOS — curl installer",
+                            detail: "curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-tools-installer.sh | sh",
+                        });
+                    }
+                    if (platform === "linux") {
+                        items.push({
+                            label: "$(check) Complete install",
+                            description: "Linux — installs udev rules (run after installing)",
+                            detail: "probe-rs complete install",
+                        });
+                    }
+                    if (platform === "win32") {
+                        items.push({
+                            label: "$(terminal) Install probe-rs",
+                            description: "Windows — PowerShell installer",
+                            detail: 'powershell -ExecutionPolicy ByPass -c "irm https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-tools-installer.ps1 | iex"',
+                        });
+                    }
+                    const picked = await vscode.window.showQuickPick(items, {
+                        placeHolder: "Select a command to copy to clipboard",
+                    });
+                    if (picked?.detail) {
+                        await vscode.env.clipboard.writeText(picked.detail);
+                        vscode.window.showInformationMessage("Install command copied to clipboard.");
+                    }
                     break;
                 }
             }
@@ -179,7 +215,18 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
     private startPolling(view: vscode.WebviewView) {
         const probePath = vscode.workspace.getConfiguration("rustdyno").get<string>("probersPath", "probe-rs");
         const poll = () => {
-            exec(`${probePath} list`, (_err, stdout) => {
+            exec(`${probePath} list`, (err, stdout) => {
+                // Detect if probe-rs binary is missing (exit code 127 = command not found)
+                const notInstalled = !!err && (
+                    err.message.toLowerCase().match(/not found|no such file|cannot find/) !== null ||
+                    String((err as NodeJS.ErrnoException).code) === "127"
+                );
+                if (notInstalled) {
+                    view.webview.postMessage({ command: "probeRsStatus", data: { installed: false } });
+                    return;
+                }
+                view.webview.postMessage({ command: "probeRsStatus", data: { installed: true } });
+
                 const probes: { id: string; label: string }[] = [];
                 for (const line of stdout.split("\n")) {
                     const m = line.match(/^\[\d+\]:\s*(.+?)\s*--\s*(\S+)/);

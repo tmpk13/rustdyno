@@ -205,7 +205,50 @@ function startSpin(btn, cmd, data) {
         setTimeout(() => { btn.classList.remove('done'); btn.disabled = false; }, 1000);
     }, 2000);
 }
-function sendAction(btn, cmd) { startSpin(btn, cmd); }
+
+function findFlashBtn() {
+    return document.querySelector('#grp-flash .split-main') ||
+           document.querySelector('[data-action="flash"]');
+}
+
+function startFlash(btn) {
+    if (btn.classList.contains('loading') || btn.classList.contains('flash-running') || btn.classList.contains('done')) { return; }
+    btn.classList.add('loading', 'flash-running');
+    btn.disabled = true;
+    const bar = btn.querySelector('.btn-progress');
+    const phaseLabel = btn.querySelector('.btn-phase-label');
+    if (bar) { bar.style.width = '0%'; }
+    if (phaseLabel) { phaseLabel.textContent = ''; }
+    send('flash');
+}
+
+function onFlashProgress(event) {
+    const btn = findFlashBtn();
+    if (!btn) { return; }
+    const bar = btn.querySelector('.btn-progress');
+    const phaseLabel = btn.querySelector('.btn-phase-label');
+
+    if (event.type === 'progress') {
+        const label = event.phase === 'erasing' ? 'Erasing…' : 'Programming…';
+        if (phaseLabel) { phaseLabel.textContent = label; }
+        if (bar) { bar.style.width = event.pct + '%'; }
+    } else if (event.type === 'done') {
+        btn.classList.remove('loading', 'flash-running');
+        if (bar) { bar.style.width = '0%'; }
+        if (phaseLabel) { phaseLabel.textContent = ''; }
+        if (event.success) {
+            btn.classList.add('done');
+            setTimeout(() => { btn.classList.remove('done'); btn.disabled = false; }, 1500);
+        } else {
+            btn.disabled = false;
+        }
+    }
+}
+
+function sendAction(btn, cmd) {
+    if (cmd === 'flash') { startFlash(btn); return; }
+    startSpin(btn, cmd);
+}
 
 function toggleDrop(e, id) {
     e.stopPropagation();
@@ -348,6 +391,7 @@ function makeActionBtn(cmd, actionCfg, files, pickedFile, uris, cmdPreviews) {
         main.style.background = color;
         main.dataset.tipLabel = label;
         main.dataset.tipCmd = tipCmd;
+        main.dataset.action = cmd;
         main.addEventListener('click', () => sendAction(main, cmd));
         main.querySelector('.btn-label').textContent = label;
         main.querySelector('.btn-run-icon').src = uris.run;
@@ -366,6 +410,7 @@ function makeActionBtn(cmd, actionCfg, files, pickedFile, uris, cmdPreviews) {
         el.style.background = color;
         el.dataset.tipLabel = label;
         el.dataset.tipCmd = tipCmd;
+        el.dataset.action = cmd;
         el.addEventListener('click', () => sendAction(el, cmd));
         el.querySelector('.btn-label').textContent = label;
         el.querySelector('.btn-run-icon').src = uris.run;
@@ -520,6 +565,11 @@ window.addEventListener('message', e => {
             const curPort = ports.find(p => p.id === cur);
             valEl.textContent = cur ? (_probeMap[cur]?.name || curPort?.label || cur) : 'auto';
         }
+    } else if (msg.command === 'probeRsStatus') {
+        const area = document.getElementById('probeRsInstallArea');
+        if (area) { area.style.display = msg.data.installed ? 'none' : 'block'; }
+    } else if (msg.command === 'flashProgress') {
+        onFlashProgress(msg.data);
     } else if (msg.command === 'probeStatus') {
         const dot = document.getElementById('probeDot');
         if (dot) {

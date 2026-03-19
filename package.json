@@ -1,6 +1,6 @@
 {
   "name": "rustdyno",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "./dist/extension.js",
   "icon": "imgs/dyno.png",
   "devDependencies": {

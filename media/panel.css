@@ -51,6 +51,7 @@
 /* Sub-panels (library, new-project) that share this CSS but have no #sectionsContainer */
 body.sub-panel {
     padding: 0.625rem;
+    overflow-y: auto;
 }
 
 /* Panel root */
@@ -998,6 +999,42 @@ button.done .btn-icon {
     visibility: hidden;
 }
 
+/* Flash progress bar fill inside action buttons */
+.btn-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 0%;
+    background: rgba(255, 255, 255, 0.18);
+    pointer-events: none;
+    z-index: 0;
+    border-radius: inherit;
+    transition: width 0.25s ease;
+}
+
+.btn-phase-label {
+    display: none;
+    position: absolute;
+    bottom: 0.375rem;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 0.65rem;
+    opacity: 0.75;
+    pointer-events: none;
+    z-index: 1;
+    letter-spacing: 0.02em;
+}
+
+.action-button.flash-running .btn-phase-label {
+    display: block;
+}
+
+.action-button.flash-running .btn-spin-icon {
+    display: none;
+}
+
 /* Probe naming */
 .probe-naming-row {
     display: flex;
@@ -1083,9 +1120,16 @@ button.done .btn-icon {
 #hiddenSection,
 #configSection,
 #probeNamingArea,
+#probeRsInstallArea,
 #resetLayoutBtn,
 #np-action {
     display: none;
+}
+
+#probeRsInstallBtn {
+    background: #b07d18;
+    font-size: 0.75rem;
+    min-height: 1.8rem;
 }
 
 /* "Hidden" label spacing inside hidden-files section */
@@ -1125,6 +1169,7 @@ button.done .btn-icon {
 #np-board-list {
     margin-bottom: 0.5rem;
     max-height: 12.5rem;
+    overflow-y: auto;
 }
 
 /* Location label (block element with top spacing) */

@@ -85,6 +85,12 @@
           <button class="icon-btn" onclick="refreshPorts()" title="Refresh port list"><img
               id="refreshPortIcon" class="icon-svg"></button>
         </div>
+        <div id="probeRsInstallArea">
+          <hr class="thick-divider">
+          <button id="probeRsInstallBtn" onclick="send('installProbeRs')" title="probe-rs not found — click to get install command">
+            ⚠ probe-rs not found — Install
+          </button>
+        </div>
         <div id="probeNamingArea">
           <hr class="thick-divider">
           <div class="label">Probes</div>
@@ -114,20 +120,24 @@
 
   <template id="tpl-action-simple">
     <button class="action-button">
+      <div class="btn-progress"></div>
       <span class="btn-icon"><img class="btn-run-icon"></span>
       <span class="btn-label"></span>
       <span class="btn-check"><img class="btn-check-icon"></span>
       <img class="btn-spin-icon">
+      <span class="btn-phase-label"></span>
     </button>
   </template>
 
   <template id="tpl-action-split">
     <div class="split-group">
       <button class="split-main action-button">
+        <div class="btn-progress"></div>
         <span class="btn-icon"><img class="btn-run-icon"></span>
         <span class="btn-label"></span>
         <span class="btn-check"><img class="btn-check-icon"></span>
         <img class="btn-spin-icon">
+        <span class="btn-phase-label"></span>
       </button>
       <button class="split-drop"><img class="drop-icon"></button>
       <div class="drop-menu"></div>
