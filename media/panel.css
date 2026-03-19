@@ -12,19 +12,19 @@
 
     /* Core colors */
     --rd-fg:           var(--vscode-foreground);
-    --rd-focus:        var(--vscode-focusBorder);
+    --rd-focus:        #55F;
     --rd-error-fg:     var(--vscode-errorForeground);
     --rd-error-border: var(--vscode-inputValidation-errorBorder, #f44747);
 
     /* Primary buttons */
-    --rd-btn-bg:       var(--vscode-button-background);
+    --rd-btn-bg:       #777;
     --rd-btn-fg:       var(--vscode-button-foreground);
-    --rd-btn-hover:    var(--vscode-button-hoverBackground);
+    --rd-btn-hover:    #0003;
 
     /* Secondary buttons */
-    --rd-btn2-bg:      var(--vscode-button-secondaryBackground);
-    --rd-btn2-fg:      var(--vscode-button-secondaryForeground);
-    --rd-btn2-hover:   var(--vscode-button-secondaryHoverBackground);
+    --rd-btn2-bg:      #0001;
+    --rd-btn2-fg:      #F00;
+    --rd-btn2-hover:   #1113;
 
     /* Dropdowns / selects */
     --rd-drop-bg:      var(--vscode-dropdown-background);
@@ -275,7 +275,7 @@ body {
 
 #search:focus,
 #np-search:focus {
-    outline: 2px solid var(--rd-focus) !important;
+    outline: 3px solid var(--rd-focus) !important;
     outline-offset: -1px;
     border-color: transparent !important;
 }
@@ -408,7 +408,7 @@ button:hover {
 }
 
 .icon-btn:focus-visible {
-    outline: 2px solid var(--rd-focus) !important;
+    outline: 3px solid var(--rd-focus) !important;
     outline-offset: 1px !important;
     border-color: transparent !important;
 }
@@ -911,7 +911,7 @@ body.edit-mode .panel-section > *:not(.edit-bar) {
 
 #np-name:focus,
 #np-location:focus {
-    outline: 2px solid var(--rd-focus) !important;
+    outline: 3px solid var(--rd-focus) !important;
     outline-offset: -1px;
     border-color: transparent !important;
 }
@@ -1026,7 +1026,7 @@ button.done .btn-icon {
 }
 
 .probe-name-input:focus {
-    outline: 2px solid var(--rd-focus) !important;
+    outline: 3px solid var(--rd-focus) !important;
     outline-offset: -1px;
     border-color: transparent !important;
 }

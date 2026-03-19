@@ -19,8 +19,10 @@ github.com/tmpk13/rustdyno
  - Create new projects
  - Download board configurations from remote repo
 
+<img src="imgs/pannel-screenshot-1.png" height="400rem">
+<img src="imgs/pannel-screenshot-2.png" height="400rem">
+<img src="imgs/pannel-screenshot-3.png" height="400rem">
 
-<img src="imgs/extension-screenshot.png" height="400rem">
 <hr>
 <br>
 
