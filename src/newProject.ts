@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
 import { exec } from "child_process";
-import * as TOML from "@iarna/toml";
+
 import { getActiveBoard, setBoardElf } from "./boardConfig";
 
 export async function newProject(): Promise<void> {
@@ -50,12 +50,12 @@ export async function newProject(): Promise<void> {
             writeProjectFiles(projectDir, np.files ?? []);
 
             progress.report({ message: "Adding dependencies…" });
-            if (np.dependencies && Object.keys(np.dependencies).length > 0) {
-                addDependencies(projectDir, "dependencies", np.dependencies);
+            if (np.dependencies) {
+                addDependencies(projectDir, np.dependencies);
             }
             const buildDeps = np["build-dependencies"];
-            if (buildDeps && Object.keys(buildDeps).length > 0) {
-                addDependencies(projectDir, "build-dependencies", buildDeps);
+            if (buildDeps) {
+                addDependencies(projectDir, buildDeps);
             }
         }
     );
@@ -85,15 +85,13 @@ function writeProjectFiles(projectDir: string, files: { path: string; content: s
     }
 }
 
-function addDependencies(projectDir: string, section: string, deps: Record<string, unknown>): void {
+function addDependencies(projectDir: string, deps: string): void {
     const cargoPath = path.join(projectDir, "Cargo.toml");
     if (!fs.existsSync(cargoPath)) { return; }
     try {
-        const parsed = TOML.parse(fs.readFileSync(cargoPath, "utf-8")) as Record<string, unknown>;
-        const existing = (parsed[section] ?? {}) as Record<string, unknown>;
-        parsed[section] = { ...existing, ...deps };
-        fs.writeFileSync(cargoPath, TOML.stringify(parsed as TOML.JsonMap), "utf-8");
+        const existing = fs.readFileSync(cargoPath, "utf-8");
+        fs.writeFileSync(cargoPath, existing.trimEnd() + "\n" + deps.trim() + "\n", "utf-8");
     } catch (e) {
-        vscode.window.showWarningMessage(`Could not update Cargo.toml ${section}: ${e}`);
+        vscode.window.showWarningMessage(`Could not update Cargo.toml: ${e}`);
     }
 }

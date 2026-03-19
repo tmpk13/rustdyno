@@ -108,5 +108,8 @@
 - [ ] File checker button
 - [ ] Make it so that naming the new project is from a text input not popup
 
+- [ ] Add a way to update existing project with new files from the board library
+- [ ] Add support for cargo generate
+
 # ?
 - [ ] integrate installer for board toolchains??

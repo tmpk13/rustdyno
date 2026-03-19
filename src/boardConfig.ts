@@ -12,10 +12,10 @@ export interface NewProjectFile {
 export interface NewProjectConfig {
   /** Files to create when generating a new project from this board config */
   files?: NewProjectFile[];
-  /** Optional cargo dependencies to add to Cargo.toml */
-  dependencies?: Record<string, unknown>;
-  /** Optional cargo build-dependencies to add to Cargo.toml */
-  "build-dependencies"?: Record<string, unknown>;
+  /** Optional cargo dependencies to append to Cargo.toml */
+  dependencies?: string;
+  /** Optional cargo build-dependencies to append to Cargo.toml */
+  "build-dependencies"?: string;
   /** Optional .cargo/config.toml runner line */
   runner?: string;
 }

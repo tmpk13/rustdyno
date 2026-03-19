@@ -2,6 +2,7 @@
   "name": "rustdyno",
   "version": "0.0.1",
   "main": "./dist/extension.js",
+  "icon": "./imgs/dyno.png",
   "devDependencies": {
     "@types/iarna__toml": "^2.0.5",
     "@types/mocha": "^10.0.10",
