@@ -129,7 +129,7 @@ window.addEventListener('message', e => {
         q.trim() ? filterBoards(q) : renderBoards(allBoards);
 
         document.getElementById('np-hint').style.display = hasConfig ? 'none' : '';
-        document.getElementById('np-action').style.display = hasConfig ? '' : 'none';
+        document.getElementById('np-action').style.display = hasConfig ? 'block' : 'none';
     } else if (msg.command === 'browseResult') {
         const locEl = document.getElementById('np-location');
         locEl.value = msg.data;

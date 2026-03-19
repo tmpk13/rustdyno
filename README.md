@@ -2,7 +2,7 @@
 
 <img width="200rem" alt="Rust crab and dynosaur" src="imgs/dyno.png">  
 
-Rust embedded runner for VSCode
+Rust running for embedded projects from VSCode
 github.com/tmpk13/rustdyno
 <hr>
 
@@ -11,7 +11,7 @@ github.com/tmpk13/rustdyno
 
 
 
-Rust running for embedded projects from VSCode
+
 
 <hr>
 <br>

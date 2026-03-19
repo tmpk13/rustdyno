@@ -120,5 +120,7 @@
     - [ ] make so directory can be used as remote repo
     - [ ] make so cache dir can be set to draw from
 
+- [ ] Add border on hover
+
 # ?
 - [ ] integrate installer for board toolchains??

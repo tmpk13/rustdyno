@@ -6,12 +6,14 @@
 <body class="sub-panel">
   <div class="section-row">
     <span class="label">Board Library</span>
-    <button class="icon-btn" onclick="forceDownloadAll(this)" title="Force check and download all from GitHub">
-      <img id="downIcon" class="icon-svg">
-    </button>
-    <button class="icon-btn" onclick="load()" title="Refresh">
-      <img id="refreshIcon" class="icon-svg">
-    </button>
+    <div class="lib-header-btns">
+      <button class="icon-btn" onclick="forceDownloadAll(this)" title="Force check and download all from GitHub">
+        <img id="downIcon" class="icon-svg">
+      </button>
+      <button class="icon-btn" onclick="load()" title="Refresh">
+        <img id="refreshIcon" class="icon-svg">
+      </button>
+    </div>
   </div>
   <input id="search" type="text" placeholder="Search boards&#8230;" oninput="filterBoards(this.value)" autocomplete="off" spellcheck="false">
   <div id="content"><div class="lib-status">Loading&#8230;</div></div>

@@ -6,12 +6,12 @@
 </head>
 
 <body>
-  
+
   <div id="sectionsContainer">
     <div class="panel-section" data-section="files">
       <div class="section-row">
         <span class="label">Files</span>
-        <div style="display:flex; gap:4px">
+        <div class="file-section-btns">
           <button class="icon-btn" id="hiddenToggle" onclick="toggleHidden()" title="Toggle hidden files">
             <img id="hiddenIcon" class="icon-svg">
           </button>
@@ -22,14 +22,14 @@
       </div>
       <hr class="thick-divider">
       <div class="file-list" id="fileList"></div>
-      <div id="hiddenSection" style="display:none">
-        <div class="label" style="margin-top:4px">Hidden</div>
+      <div id="hiddenSection">
+        <div class="label">Hidden</div>
         <div class="file-list" id="hiddenList"></div>
-        
+
       </div>
       <hr class="thick-divider">
     </div>
-    
+
     <div class="panel-section" data-section="actions">
       <div id="actionBtns"></div>
     </div>
@@ -39,18 +39,19 @@
         <span class="btn-icon"><img id="rttRunIcon" class="btn-run-icon"></span>
         <span class="btn-label">RTT Monitor</span>
         <span class="btn-check"><img id="rttCheckIcon" class="btn-check-icon"></span>
+        <img class="btn-spin-icon">
       </button>
       <hr class="thick-divider">
     </div>
-    
+
     <div class="panel-section" data-section="config">
       <div class="config-header" onclick="toggleConfig()">
         <img class="config-arrow" id="configArrow">
         <span class="config-summary" id="configSummary"></span>
         <span id="probeDot" class="probe-dot" title="Checking..."></span>
       </div>
-      <div id="configSection" style="display:none">
-        <div class="label" style="margin-top:6px">Target</div>
+      <div id="configSection">
+        <div class="label">Target</div>
         <div class="cs-wrap">
           <div class="cs-btn" onclick="toggleDrop(event,'menu-target')">
             <span class="cs-val" id="cs-val-target">No files</span>
@@ -72,8 +73,8 @@
 
         <hr class="thick-divider">
         <div class="label" id="portLabelEl">Port</div>
-        <div style="display:flex;gap:4px;margin-bottom:8px">
-          <div class="cs-wrap" style="flex:1;margin:0">
+        <div class="port-row">
+          <div class="cs-wrap">
             <div class="cs-btn" onclick="toggleDrop(event,'menu-port')">
               <span class="cs-val" id="cs-val-port">auto</span>
               <img id="dropPort" class="drop-icon">
@@ -82,10 +83,10 @@
               <div class="drop-item drop-active" data-val="" onclick="pickPort('','auto')">-- auto --</div>
             </div>
           </div>
-          <button class="icon-btn" onclick="refreshPorts()" title="Refresh port list" style="flex-shrink:0"><img
+          <button class="icon-btn" onclick="refreshPorts()" title="Refresh port list"><img
               id="refreshPortIcon" class="icon-svg"></button>
         </div>
-        <div id="probeNamingArea" style="display:none">
+        <div id="probeNamingArea">
           <hr class="thick-divider">
           <div class="label">Probes</div>
           <div id="probeNamingList"></div>
@@ -117,6 +118,7 @@
       <span class="btn-icon"><img class="btn-run-icon"></span>
       <span class="btn-label"></span>
       <span class="btn-check"><img class="btn-check-icon"></span>
+      <img class="btn-spin-icon">
     </button>
   </template>
 
@@ -126,6 +128,7 @@
         <span class="btn-icon"><img class="btn-run-icon"></span>
         <span class="btn-label"></span>
         <span class="btn-check"><img class="btn-check-icon"></span>
+        <img class="btn-spin-icon">
       </button>
       <button class="split-drop"><img class="drop-icon"></button>
       <div class="drop-menu"></div>
@@ -135,7 +138,7 @@
   <div id="editFooter">
     <span class="label">Edit layout</span>
     <div id="editHeader">
-      <button class="icon-btn edit-reset-btn" id="resetLayoutBtn" onclick="resetLayout()" title="Reset layout to default" style="display:none">&#x21BA;</button>
+      <button class="icon-btn edit-reset-btn" id="resetLayoutBtn" onclick="resetLayout()" title="Reset layout to default">&#x21BA;</button>
       <button class="icon-btn edit-toggle-btn" id="editToggleBtn" onclick="toggleEditMode()" title="Edit panel layout">&#x270E;</button>
     </div>
   </div>

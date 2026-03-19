@@ -41,7 +41,7 @@ function toggleEditMode() {
     const btn = document.getElementById('editToggleBtn');
     btn.style.opacity = _editMode ? '1' : '0.5';
     btn.title = _editMode ? 'Done editing layout' : 'Edit panel layout';
-    document.getElementById('resetLayoutBtn').style.display = _editMode ? '' : 'none';
+    document.getElementById('resetLayoutBtn').style.display = _editMode ? 'block' : 'none';
     if (_editMode) {
         enterEditMode();
     } else {
@@ -286,6 +286,7 @@ function setUris(uris) {
     img('hiddenIcon').src = uris.eye;
     img('rttRunIcon').src = uris.run;
     img('rttCheckIcon').src = uris.check;
+    document.querySelector('#rttBtn .btn-spin-icon').src = uris.refresh;
     img('dropTarget').src = uris.drop;
     img('dropBoard').src = uris.drop;
     img('dropPort').src = uris.drop;
@@ -351,6 +352,7 @@ function makeActionBtn(cmd, actionCfg, files, pickedFile, uris, cmdPreviews) {
         main.querySelector('.btn-label').textContent = label;
         main.querySelector('.btn-run-icon').src = uris.run;
         main.querySelector('.btn-check-icon').src = uris.check;
+        main.querySelector('.btn-spin-icon').src = uris.refresh;
         const splitDrop = el.querySelector('.split-drop');
         splitDrop.style.background = color;
         splitDrop.querySelector('.drop-icon').src = uris.drop;
@@ -368,6 +370,7 @@ function makeActionBtn(cmd, actionCfg, files, pickedFile, uris, cmdPreviews) {
         el.querySelector('.btn-label').textContent = label;
         el.querySelector('.btn-run-icon').src = uris.run;
         el.querySelector('.btn-check-icon').src = uris.check;
+        el.querySelector('.btn-spin-icon').src = uris.refresh;
         return el;
     }
 }
@@ -602,7 +605,7 @@ function renderProbeNaming(probes, probeMap) {
     const list = document.getElementById('probeNamingList');
     if (!area || !list) { return; }
     if (_currentProbes.length === 0) { area.style.display = 'none'; return; }
-    area.style.display = '';
+    area.style.display = 'block';
     // Preserve any in-progress input values and focus before re-rendering
     const draftValues = {};
     let focusedProbeId = null;
