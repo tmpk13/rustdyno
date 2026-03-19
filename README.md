@@ -11,7 +11,22 @@ github.com/tmpk13/rustdyno
 ### Requires probe-rs
 [probe-rs](https://probe.rs/)
 
+<hr>
 
+## Features
+ - Automatic port recognition
+ - Board configuration with toml
+ - Create new projects
+ - Download board configurations from remote repo
+
+<hr>
+<br>
+
+### Major TODO
+ - [ ] Add examples tab
+ - [ ] Add support for cargo generate
+ - [ ] Test all current boards
+ - [ ] Add new board configs (pico, nrf52840, ...)
 
 <hr>
 <br>

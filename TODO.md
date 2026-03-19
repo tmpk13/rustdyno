@@ -111,11 +111,11 @@
 - [ ] Add a way to update existing project with new files from the board library
 - [ ] Add support for cargo generate
 
-- [ ] Fix rtt attach
+- [x] Fix rtt attach
 
-- [ ] Esp is selected board even when selecting others in the new project section
+- [ ] Esp is selected board even when selecting others in the new project section fix
 
-- [ ] Make cache only used if no internet
+- [x] Make cache only used if no internet
     - [ ] add toggle button to use cache or not
     - [ ] make so directory can be used as remote repo
     - [ ] make so cache dir can be set to draw from
