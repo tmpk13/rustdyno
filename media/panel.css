@@ -17,8 +17,8 @@
     --rd-error-border: var(--vscode-inputValidation-errorBorder, #f44747);
 
     /* Primary buttons */
-    --rd-btn-bg:       #777;
-    --rd-btn-fg:       var(--vscode-button-foreground);
+    --rd-btn-bg:       #aaa;
+    --rd-btn-fg:       #FFF;
     --rd-btn-hover:    #0003;
 
     /* Secondary buttons */
@@ -502,7 +502,7 @@ button:hover {
 /* Spinner animation used by button loading state */
 @keyframes spin {
     to {
-        transform: rotate(360deg);
+        transform: rotate(-360deg);
     }
 }
 
@@ -775,6 +775,7 @@ img:not([src]), img[src=""] {
 .edit-toggle-btn {
     opacity: 0.5;
     font-size: 0.875rem;
+    color: rgb(75, 75, 75);
 }
 
 .edit-toggle-btn:hover {
