@@ -30,7 +30,8 @@ rtt-target   = "0.6"
 stm32f1xx-hal = { version = "0.11", features = ["stm32f103", "rt"] }
 
 [[new_project.files]]
-path    = "rustdyno.toml"
+path              = "rustdyno.toml"
+replace_if_exists = true
 content = """
 default="stm32f1.toml"
 """
@@ -54,7 +55,8 @@ fn main() -> ! {
 """
 
 [[new_project.files]]
-path    = "Embed.toml"
+path              = "Embed.toml"
+replace_if_exists = true
 content = """
 [default.general]
 chip = \"STM32F103C8Tx\"
@@ -70,7 +72,8 @@ enabled = false
 """
 
 [[new_project.files]]
-path    = "memory.x"
+path              = "memory.x"
+replace_if_exists = true
 content = """
 MEMORY {
     FLASH : ORIGIN = 0x08000000, LENGTH = 64K
@@ -79,7 +82,8 @@ MEMORY {
 """
 
 [[new_project.files]]
-path    = ".cargo/config.toml"
+path              = ".cargo/config.toml"
+replace_if_exists = true
 content = """
 [target.thumbv7m-none-eabi]
 runner     = \"probe-rs run --chip STM32F103C8Tx --protocol {{PROTOCOL}}\"

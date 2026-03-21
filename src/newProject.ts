@@ -3,7 +3,22 @@ import * as fs from "fs";
 import * as path from "path";
 import { exec } from "child_process";
 
-import { getActiveBoard, getActiveBoardFile, setBoardElf, NewProjectConfig } from "./boardConfig";
+import { getActiveBoard, getActiveBoardFile, getBoardDir, setBoardElf, setupBoardDir, NewProjectConfig, NewProjectFile } from "./boardConfig";
+
+let outputChannel: vscode.OutputChannel | undefined;
+
+function getOutputChannel(): vscode.OutputChannel {
+    if (!outputChannel) {
+        outputChannel = vscode.window.createOutputChannel("RustDyno Setup");
+    }
+    return outputChannel;
+}
+
+export interface ApplyResult {
+    generated: string[];
+    replaced: string[];
+    skipped: string[];
+}
 
 export async function newProject(): Promise<void> {
     const board = getActiveBoard();
@@ -77,6 +92,90 @@ async function runNewProject(np: NewProjectConfig, boardName: string, protocol: 
     vscode.commands.executeCommand("vscode.openFolder", vscode.Uri.file(projectDir), { forceNewWindow: false });
 }
 
+export function applyBoardToProject(extensionPath: string): ApplyResult | undefined {
+    const board = getActiveBoard();
+    const wsRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    if (!board?.new_project?.files || !wsRoot) { return undefined; }
+
+    // Ensure .rustdyno exists before applying
+    setupBoardDir(extensionPath);
+
+    const boardDir = getBoardDir();
+    const backupDir = path.join(boardDir, "backup");
+    const protocol = board.probe?.protocol;
+    const boardFile = getActiveBoardFile();
+    const np = board.new_project;
+    const result: ApplyResult = { generated: [], replaced: [], skipped: [] };
+
+    for (const f of np.files ?? []) {
+        const dest = path.join(wsRoot, f.path);
+        const exists = fs.existsSync(dest);
+
+        if (exists && !f.replace_if_exists) {
+            result.skipped.push(f.path);
+            continue;
+        }
+
+        if (exists) {
+            // Backup existing file
+            const backupPath = path.join(backupDir, f.path);
+            fs.mkdirSync(path.dirname(backupPath), { recursive: true });
+            fs.copyFileSync(dest, backupPath);
+            result.replaced.push(f.path);
+        } else {
+            result.generated.push(f.path);
+        }
+
+        // Write new content
+        fs.mkdirSync(path.dirname(dest), { recursive: true });
+        let content = f.content;
+        if (protocol) { content = content.replaceAll("{{PROTOCOL}}", protocol); }
+        if (boardFile) { content = content.replaceAll("{{BOARD_FILE}}", boardFile); }
+        fs.writeFileSync(dest, content, "utf-8");
+    }
+
+    // Apply dependencies
+    if (np.dependencies) {
+        addDependencies(wsRoot, np.dependencies);
+    }
+    const buildDeps = np["build-dependencies"];
+    if (buildDeps) {
+        addDependencies(wsRoot, buildDeps);
+    }
+
+    return result;
+}
+
+export function showApplyResult(result: ApplyResult, boardName: string): void {
+    const ch = getOutputChannel();
+    ch.clear();
+    ch.appendLine(`Board applied: ${boardName}`);
+    ch.appendLine("─".repeat(40));
+
+    if (result.generated.length) {
+        ch.appendLine("\nGenerated (new files):");
+        for (const f of result.generated) { ch.appendLine(`  + ${f}`); }
+    }
+    if (result.replaced.length) {
+        ch.appendLine("\nReplaced (backed up to .rustdyno/backup/):");
+        for (const f of result.replaced) { ch.appendLine(`  ~ ${f}`); }
+    }
+    if (result.skipped.length) {
+        ch.appendLine("\nSkipped (file exists, replace_if_exists = false):");
+        for (const f of result.skipped) { ch.appendLine(`  - ${f}`); }
+    }
+
+    const parts: string[] = [];
+    if (result.generated.length) { parts.push(`${result.generated.length} generated`); }
+    if (result.replaced.length) { parts.push(`${result.replaced.length} replaced`); }
+    if (result.skipped.length) { parts.push(`${result.skipped.length} skipped`); }
+    const summary = `Board "${boardName}" applied: ${parts.join(", ")}.`;
+
+    vscode.window.showInformationMessage(summary, "Show Details").then(choice => {
+        if (choice === "Show Details") { ch.show(); }
+    });
+}
+
 function runCargoNew(parentDir: string, name: string): Promise<void> {
     return new Promise((resolve, reject) => {
         exec(`cargo new --name ${name} ${name}`, { cwd: parentDir }, (err, _stdout, stderr) => {
@@ -90,7 +189,7 @@ function runCargoNew(parentDir: string, name: string): Promise<void> {
     });
 }
 
-function writeProjectFiles(projectDir: string, files: { path: string; content: string }[], protocol?: string, boardFile?: string): void {
+function writeProjectFiles(projectDir: string, files: NewProjectFile[], protocol?: string, boardFile?: string): void {
     for (const f of files) {
         const dest = path.join(projectDir, f.path);
         fs.mkdirSync(path.dirname(dest), { recursive: true });

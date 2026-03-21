@@ -4,6 +4,10 @@
   <link rel="stylesheet" href="{{CSS_URI}}">
 </head>
 <body class="sub-panel">
+  <div id="np-setup" style="display:none">
+    <p class="np-hint">No board config directory found in this workspace.</p>
+    <button id="np-setup-btn" onclick="setupWorkspace()">Setup .rustdyno</button>
+  </div>
   <div class="section-row">
     <span class="label">Board</span>
     <button class="icon-btn" onclick="refreshBoards()" title="Refresh board list">
@@ -22,6 +26,7 @@
       <button class="np-browse-btn" onclick="browseLocation()" title="Browse">&#8230;</button>
     </div>
     <button id="np-create-btn" onclick="createProject()">Create Project</button>
+    <button id="np-apply-btn" onclick="applyBoard()">Apply Board to Current Project</button>
   </div>
   <script src="{{JS_URI}}"></script>
 </body>

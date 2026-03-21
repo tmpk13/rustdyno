@@ -85,6 +85,14 @@ function browseLocation() {
     send('browseFolder');
 }
 
+function setupWorkspace() {
+    send('setup');
+}
+
+function applyBoard() {
+    send('applyBoard');
+}
+
 function clearError(el) {
     el.classList.remove('np-error');
 }
@@ -120,13 +128,16 @@ function refreshBoards() {
 window.addEventListener('message', e => {
     const msg = e.data;
     if (msg.command === 'init') {
-        const { hasConfig, boards, activeBoardFile: abf, uris } = msg.data;
+        const { hasConfig, hasBoardDir, boards, activeBoardFile: abf, uris } = msg.data;
         if (uris?.refresh) { document.getElementById('npRefreshIcon').src = uris.refresh; }
         allBoards = boards || [];
         activeBoardFile = abf || null;
 
         const q = document.getElementById('np-search').value;
         q.trim() ? filterBoards(q) : renderBoards(allBoards);
+
+        const setupDiv = document.getElementById('np-setup');
+        if (setupDiv) { setupDiv.style.display = hasBoardDir ? 'none' : ''; }
 
         document.getElementById('np-hint').style.display = hasConfig ? 'none' : '';
         document.getElementById('np-action').style.display = hasConfig ? 'block' : 'none';

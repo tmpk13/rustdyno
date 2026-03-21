@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
 import { exec } from "child_process";
-import { autoSelectBoard, getActiveBoard, getActiveBoardFile, getEffectivePort, getLayout, getPortOverride, getDefaultTargetFile, listBoards, PanelLayout, selectBoardByFile, setDefaultBoardFile, setDefaultTargetFile, setLayout, setPortOverride, getProbeMap, setProbeMapping, clearProbeBoard } from "./boardConfig";
+import { autoSelectBoard, getActiveBoard, getActiveBoardFile, getBoardDir, getEffectivePort, getLayout, getPortOverride, getDefaultTargetFile, listBoards, PanelLayout, selectBoardByFile, setDefaultBoardFile, setDefaultTargetFile, setLayout, setPortOverride, getProbeMap, setProbeMapping, clearProbeBoard, setupBoardDir } from "./boardConfig";
 
 const DEFAULT_ACTIONS: Record<string, { label: string; color: string }> = {
     build: { label: "Build", color: "#1e7ec8" },
@@ -11,7 +11,7 @@ const DEFAULT_ACTIONS: Record<string, { label: string; color: string }> = {
 };
 import { getActiveFile, getCachedFiles, getHiddenFiles, hideFile, openFile, refreshFiles, reorderFiles, unhideFile } from "./filePicker";
 import { fetchLibraryList, downloadBoardToWorkspace, addBoardFromCache, listCachedBoards, isBoardInWorkspace, removeBoard, fetchBoardContent, getWorkspaceBoardContent, updateBoardInWorkspace } from "./boardLibrary";
-import { createNewProject } from "./newProject";
+import { createNewProject, applyBoardToProject, showApplyResult } from "./newProject";
 import { flash } from "./flasher";
 
 function loadHtml(ext: vscode.ExtensionContext, webview: vscode.Webview, htmlFile: string, jsFile: string): string {
@@ -419,7 +419,22 @@ export class NewProjectPanelProvider implements vscode.WebviewViewProvider {
                 }
             } else if (msg.command === "createProject") {
                 const { name, location } = msg.data as { name: string; location: string };
+                setupBoardDir(this.ext.extensionUri.fsPath);
                 createNewProject(name, location);
+            } else if (msg.command === "setup") {
+                setupBoardDir(this.ext.extensionUri.fsPath);
+                vscode.window.showInformationMessage("Board config directory created.");
+                this.sendState();
+            } else if (msg.command === "applyBoard") {
+                const board = getActiveBoard();
+                if (!board?.new_project) {
+                    vscode.window.showErrorMessage("No board with [new_project] config selected.");
+                    return;
+                }
+                const result = applyBoardToProject(this.ext.extensionUri.fsPath);
+                if (result) {
+                    showApplyResult(result, board.board.name);
+                }
             }
         });
     }
@@ -437,6 +452,7 @@ export class NewProjectPanelProvider implements vscode.WebviewViewProvider {
             command: "init",
             data: {
                 hasConfig: !!board?.new_project,
+                hasBoardDir: fs.existsSync(getBoardDir()),
                 boardName: board?.board.name ?? "no board selected",
                 boards: listBoards(),
                 activeBoardFile: getActiveBoardFile(),

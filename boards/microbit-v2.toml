@@ -31,13 +31,15 @@ rtt-target       = "0.6"
 """
 
 [[new_project.files]]
-path    = "rustdyno.toml"
+path              = "rustdyno.toml"
+replace_if_exists = true
 content = """
 default="microbit-v2.toml"
 """
 
 [[new_project.files]]
-path    = "Embed.toml"
+path              = "Embed.toml"
+replace_if_exists = true
 content = """
 [default.general]
 chip = \"nrf52833_xxAA\"
@@ -77,7 +79,8 @@ fn main() -> ! {
 """
 
 [[new_project.files]]
-path    = ".cargo/config.toml"
+path              = ".cargo/config.toml"
+replace_if_exists = true
 content = """
 [build]
 target = \"thumbv7em-none-eabihf\"

@@ -27,7 +27,8 @@ log         = "0.4"
 embuild = "0.33"
 
 [[new_project.files]]
-path    = "rustdyno.toml"
+path              = "rustdyno.toml"
+replace_if_exists = true
 content = """
 default="esp32c3.toml"
 """
@@ -59,7 +60,8 @@ fn main() {
 """
 
 [[new_project.files]]
-path    = "rust-toolchain.toml"
+path              = "rust-toolchain.toml"
+replace_if_exists = true
 content = """
 [toolchain]
 channel    = \"nightly\"
@@ -82,7 +84,8 @@ CONFIG_PTHREAD_TASK_STACK_SIZE_DEFAULT=4096
 """
 
 [[new_project.files]]
-path    = ".cargo/config.toml"
+path              = ".cargo/config.toml"
+replace_if_exists = true
 content = """
 [build]
 target = \"riscv32imc-esp-espidf\"
