@@ -30,6 +30,21 @@
     </div>
 
     <div class="panel-section" data-section="actions">
+      <div class="check-toggle-row">
+        <button class="check-toggle-btn" id="checkToggleBtn" onclick="toggleCheck()"
+          title="Toggle cargo check &amp; clippy">
+          <span class="check-toggle-icon">&#x276F;</span>
+          <span>Check &amp; Clippy</span>
+        </button>
+      </div>
+      <div id="checkBtnArea" style="display:none">
+        <button class="action-button check-action-btn" id="checkRunBtn" onclick="runCheck()">
+          <span class="btn-icon"><img id="checkRunIcon" class="btn-run-icon"></span>
+          <span class="btn-label">cargo check &amp;&amp; clippy</span>
+          <span class="btn-check"><img id="checkDoneIcon" class="btn-check-icon"></span>
+          <img class="btn-spin-icon" id="checkSpinIcon">
+        </button>
+      </div>
       <div id="actionBtns"></div>
     </div>
     <div class="panel-section" data-section="rtt">

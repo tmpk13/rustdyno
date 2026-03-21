@@ -297,6 +297,17 @@ function toggleHidden() {
     }
 }
 
+function toggleCheck() { send('toggleCheck'); }
+
+let _checkRunning = false;
+function runCheck() {
+    if (_checkRunning) { return; }
+    _checkRunning = true;
+    const btn = document.getElementById('checkRunBtn');
+    if (btn) { btn.classList.add('loading'); btn.disabled = true; }
+    send('runCheck');
+}
+
 function spinRefresh(id) {
     const el = document.getElementById(id);
     if (!el) {return;}
@@ -335,6 +346,12 @@ function setUris(uris) {
     img('dropPort').src = uris.drop;
     img('refreshPortIcon').src = uris.refresh;
     img('configArrow').src = uris.drop;
+    const checkRun = document.getElementById('checkRunIcon');
+    if (checkRun) { checkRun.src = uris.run; }
+    const checkSpin = document.getElementById('checkSpinIcon');
+    if (checkSpin) { checkSpin.src = uris.refresh; }
+    const checkDoneIcon = document.getElementById('checkDoneIcon');
+    if (checkDoneIcon) { checkDoneIcon.src = uris.check; }
 }
 
 // --- Template helpers ---
@@ -487,6 +504,12 @@ function render(state) {
         actionBtns.appendChild(makeActionBtn(cmd, cfg, files, pickedFile, uris, cmdPreviews));
     });
 
+    // Check & Clippy toggle
+    const checkArea = document.getElementById('checkBtnArea');
+    if (checkArea) { checkArea.style.display = state.checkEnabled ? 'block' : 'none'; }
+    const checkToggleBtn = document.getElementById('checkToggleBtn');
+    if (checkToggleBtn) { checkToggleBtn.classList.toggle('check-toggle-active', !!state.checkEnabled); }
+
     // RTT button
     const rttBtn = document.getElementById('rttBtn');
     rttBtn.dataset.tipCmd = cmdPreviews.rtt;
@@ -568,6 +591,10 @@ window.addEventListener('message', e => {
     } else if (msg.command === 'probeRsStatus') {
         const area = document.getElementById('probeRsInstallArea');
         if (area) { area.style.display = msg.data.installed ? 'none' : 'block'; }
+    } else if (msg.command === 'checkDone') {
+        _checkRunning = false;
+        const btn = document.getElementById('checkRunBtn');
+        if (btn) { btn.classList.remove('loading'); btn.disabled = false; }
     } else if (msg.command === 'flashProgress') {
         onFlashProgress(msg.data);
     } else if (msg.command === 'probeStatus') {

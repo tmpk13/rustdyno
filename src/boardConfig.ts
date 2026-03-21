@@ -7,6 +7,7 @@ import { getGlobalBoardsDir } from "./boardLibrary";
 export interface NewProjectFile {
   path: string;
   content: string;
+  replace_if_exists?: boolean;
 }
 
 export interface NewProjectConfig {
@@ -46,7 +47,11 @@ let activeBoardFile: string | undefined;
 let activeBoardPath: string | undefined;
 let portOverride: string | undefined;
 
-export function ensureBoardDir(extensionPath: string): void {
+export function ensureBoardDir(_extensionPath: string): void {
+  // No-op: .rustdyno is now created explicitly via setupBoardDir() or new project creation
+}
+
+export function setupBoardDir(extensionPath: string): void {
   const dir = getBoardDir();
   if (fs.existsSync(dir)) { return; }
   fs.mkdirSync(dir, { recursive: true });
@@ -56,7 +61,7 @@ export function ensureBoardDir(extensionPath: string): void {
   }
 }
 
-function getBoardDir(): string {
+export function getBoardDir(): string {
   const wsRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   const configDir = vscode.workspace.getConfiguration("rustdyno").get<string>("boardConfigDir", ".rustdyno");
   return path.join(wsRoot ?? ".", configDir);

@@ -30,6 +30,8 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
     private view?: vscode.WebviewView;
     private _pollInterval: NodeJS.Timeout | undefined;
     private _seenProbeIds = new Set<string>();
+    private _checkEnabled: boolean = false;
+    private _checkPanel: vscode.WebviewPanel | undefined;
 
     constructor(private readonly ext: vscode.ExtensionContext) { }
 
@@ -45,6 +47,7 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
 
         const savedPort = this.ext.workspaceState.get<string>("portOverride");
         if (savedPort) { setPortOverride(savedPort); }
+        this._checkEnabled = this.ext.workspaceState.get<boolean>("checkEnabled", false);
 
         if (!getActiveBoard()) { autoSelectBoard(); }
         const savedTarget = getDefaultTargetFile();
@@ -136,6 +139,55 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
                     clearProbeBoard(probeId);
                     break;
                 }
+                case "toggleCheck": {
+                    this._checkEnabled = !this._checkEnabled;
+                    this.ext.workspaceState.update("checkEnabled", this._checkEnabled);
+                    this.sendState();
+                    break;
+                }
+                case "runCheck": {
+                    const wsRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+                    if (!wsRoot) {
+                        vscode.window.showErrorMessage("No workspace folder open.");
+                        break;
+                    }
+                    if (!this._checkPanel) {
+                        this._checkPanel = vscode.window.createWebviewPanel(
+                            "rustdyno.checkResults",
+                            "Cargo Check & Clippy",
+                            vscode.ViewColumn.One,
+                            {
+                                enableScripts: true,
+                                localResourceRoots: [vscode.Uri.joinPath(this.ext.extensionUri, "media")],
+                                retainContextWhenHidden: true,
+                            }
+                        );
+                        this._checkPanel.webview.html = this._getCheckHtml(this._checkPanel.webview);
+                        this._checkPanel.onDidDispose(() => { this._checkPanel = undefined; });
+                        this._checkPanel.webview.onDidReceiveMessage(async (m) => {
+                            if (m.command === "openFile") {
+                                const { path: filePath, line, column } = m.data as { path: string; line: number; column: number };
+                                try {
+                                    const uri = vscode.Uri.file(filePath);
+                                    const doc = await vscode.workspace.openTextDocument(uri);
+                                    const pos = new vscode.Position(line - 1, Math.max(0, column - 1));
+                                    await vscode.window.showTextDocument(doc, {
+                                        selection: new vscode.Range(pos, pos),
+                                        preview: false,
+                                    });
+                                } catch {
+                                    vscode.window.showErrorMessage(`Could not open: ${filePath}`);
+                                }
+                            } else if (m.command === "rerun") {
+                                this._doRunCheck(wsRoot, view);
+                            }
+                        });
+                    } else {
+                        this._checkPanel.reveal(vscode.ViewColumn.One);
+                    }
+                    this._doRunCheck(wsRoot, view);
+                    break;
+                }
                 case "installProbeRs": {
                     const platform = process.platform;
                     const items: vscode.QuickPickItem[] = [];
@@ -208,8 +260,35 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
                     eyeSlash: uri("imgs/eye-slash.svg"),
                 },
                 layout: getLayout() ?? null,
+                checkEnabled: this._checkEnabled,
             },
         });
+    }
+
+    private _doRunCheck(wsRoot: string, view: vscode.WebviewView) {
+        if (!this._checkPanel) { return; }
+        this._checkPanel.webview.postMessage({ command: "checkRunning" });
+        view.webview.postMessage({ command: "checkRunning" });
+        import("./checker").then(({ runCheckAndClipy }) => {
+            runCheckAndClipy(wsRoot).then(result => {
+                this._checkPanel?.webview.postMessage({ command: "checkResults", data: result });
+                view.webview.postMessage({ command: "checkDone" });
+            }).catch(err => {
+                vscode.window.showErrorMessage(`cargo check failed: ${err}`);
+                view.webview.postMessage({ command: "checkDone" });
+            });
+        });
+    }
+
+    private _getCheckHtml(webview: vscode.Webview): string {
+        const media = vscode.Uri.joinPath(this.ext.extensionUri, "media");
+        const css = webview.asWebviewUri(vscode.Uri.joinPath(media, "check.css")).toString();
+        const js  = webview.asWebviewUri(vscode.Uri.joinPath(media, "check.js")).toString();
+        const htmlPath = path.join(this.ext.extensionUri.fsPath, "media", "check.html");
+        return fs.readFileSync(htmlPath, "utf8")
+            .replace("{{CSS_URI}}", css)
+            .replace("{{JS_URI}}", js)
+            .replace(/\{\{WEBVIEW_CSP_SOURCE\}\}/g, webview.cspSource);
     }
 
     private startPolling(view: vscode.WebviewView) {
