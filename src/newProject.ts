@@ -76,6 +76,7 @@ async function runNewProject(np: NewProjectConfig, boardName: string, protocol: 
 
             progress.report({ message: "Writing project files…" });
             writeProjectFiles(projectDir, np.files ?? [], protocol, boardFile);
+            quickCheckFiles(projectDir, np.files ?? []);
 
             progress.report({ message: "Adding dependencies…" });
             if (np.dependencies) {
@@ -189,7 +190,7 @@ function runCargoNew(parentDir: string, name: string): Promise<void> {
     });
 }
 
-function writeProjectFiles(projectDir: string, files: NewProjectFile[], protocol?: string, boardFile?: string): void {
+export function writeProjectFiles(projectDir: string, files: NewProjectFile[], protocol?: string, boardFile?: string): void {
     for (const f of files) {
         const dest = path.join(projectDir, f.path);
         fs.mkdirSync(path.dirname(dest), { recursive: true });
@@ -200,7 +201,16 @@ function writeProjectFiles(projectDir: string, files: NewProjectFile[], protocol
     }
 }
 
-function addDependencies(projectDir: string, deps: string): void {
+function quickCheckFiles(projectDir: string, files: NewProjectFile[]): void {
+    const ch = getOutputChannel();
+    const missing = files.filter(f => !fs.existsSync(path.join(projectDir, f.path)));
+    if (missing.length > 0) {
+        ch.appendLine(`[WARN] ${missing.length} expected file(s) not written:`);
+        for (const f of missing) { ch.appendLine(`  - ${f.path}`); }
+    }
+}
+
+export function addDependencies(projectDir: string, deps: string): void {
     const cargoPath = path.join(projectDir, "Cargo.toml");
     if (!fs.existsSync(cargoPath)) { return; }
     try {

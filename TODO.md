@@ -126,5 +126,9 @@
 
 - [ ] Fix rtt detection (probe section required? esp32c3 uses espflash?)
 
+- [x] Tests for file creation
+- [x] Tests for command output
+- [ ] Review tests add documentation for them
+
 # ?
 - [ ] integrate installer for board toolchains??

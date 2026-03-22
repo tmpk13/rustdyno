@@ -269,11 +269,11 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
         if (!this._checkPanel) { return; }
         this._checkPanel.webview.postMessage({ command: "checkRunning" });
         view.webview.postMessage({ command: "checkRunning" });
-        import("./checker").then(({ runCheckAndClipy }) => {
-            runCheckAndClipy(wsRoot).then(result => {
+        import("./checker.js").then(({ runCheckAndClipy }) => {
+            runCheckAndClipy(wsRoot).then((result: unknown) => {
                 this._checkPanel?.webview.postMessage({ command: "checkResults", data: result });
                 view.webview.postMessage({ command: "checkDone" });
-            }).catch(err => {
+            }).catch((err: unknown) => {
                 vscode.window.showErrorMessage(`cargo check failed: ${err}`);
                 view.webview.postMessage({ command: "checkDone" });
             });

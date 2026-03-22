@@ -6,6 +6,12 @@ Rust running for embedded projects from VSCode
 
 github.com/tmpk13/rustdyno
 
+
+## Run
+Compile: `bun run compile`
+Build extension: `bunx vsce package`
+Tests: `bun run test:unit`
+
 <hr>
 
 ### Requires probe-rs

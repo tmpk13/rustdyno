@@ -10,12 +10,12 @@ export type FlashProgressEvent =
 
 export type FlashProgressCallback = (event: FlashProgressEvent) => void;
 
-function stripAnsi(s: string): string {
+export function stripAnsi(s: string): string {
   // eslint-disable-next-line no-control-regex
   return s.replace(/\x1b\[[0-9;]*[A-Za-z]/g, "");
 }
 
-function parseProgress(line: string): { phase: "erasing" | "programming"; pct: number } | null {
+export function parseProgress(line: string): { phase: "erasing" | "programming"; pct: number } | null {
   const clean = stripAnsi(line);
   const m = clean.match(/(Erasing|Programming)\s+[✔✓ ]?\s*(\d+)%/i);
   if (!m) { return null; }

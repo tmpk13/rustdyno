@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'none'; style-src {{WEBVIEW_CSP_SOURCE}}; script-src {{WEBVIEW_CSP_SOURCE}};">
+  <link rel="stylesheet" href="{{CSS_URI}}">
+</head>
+
+<body>
+
+  <div id="toolbar">
+    <span id="summary">Running&#x2026;</span>
+    <button id="rerunBtn" onclick="send('rerun')">Re-run</button>
+  </div>
+
+  <div id="filterBar">
+    <label><input type="checkbox" id="showErrors" checked> Errors</label>
+    <label><input type="checkbox" id="showWarnings" checked> Warnings</label>
+    <label><input type="checkbox" id="showNotes"> Notes &amp; Help</label>
+    <label><input type="checkbox" id="showCheck" checked> check</label>
+    <label><input type="checkbox" id="showClipy" checked> clippy</label>
+  </div>
+
+  <div id="loadingMsg">Running cargo check &amp;&amp; clippy&#x2026;</div>
+  <div id="emptyMsg" style="display:none">No diagnostics found.</div>
+  <div id="diagList"></div>
+
+  <template id="tpl-diag">
+    <div class="diag-item">
+      <div class="diag-header">
+        <span class="diag-level"></span>
+        <span class="diag-code"></span>
+        <span class="diag-message"></span>
+        <span class="diag-source"></span>
+      </div>
+      <div class="diag-spans"></div>
+      <details class="diag-rendered">
+        <summary>Full output</summary>
+        <pre class="diag-rendered-pre"></pre>
+      </details>
+    </div>
+  </template>
+
+  <template id="tpl-span">
+    <div class="span-item">
+      <span class="span-badge"></span>
+      <button class="span-link"></button>
+      <span class="span-label"></span>
+    </div>
+  </template>
+
+  <script src="{{JS_URI}}"></script>
+</body>
+
+</html>
