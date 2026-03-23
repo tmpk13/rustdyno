@@ -148,7 +148,15 @@
 
 - [ ] Add tool install check and install button, ex espflash/toolchain
 
+- [ ] Make it so error messages can be copied
+
+- [ ] 
+
 - [ ] Swap to using flex UI
+
+- [ ] Be able to copy layout from other projects
+
+- [ ] swap to vertical tabs when too thin
 
 # ?
 - [ ] integrate installer for board toolchains??

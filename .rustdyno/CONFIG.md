@@ -93,6 +93,53 @@ name = "Terminal"
 
 ---
 
+## `[tool]` *(optional)*
+
+Declares the CLI tool required to flash or monitor the board. When present and
+the tool is **not detected**, the panel shows an install button above the
+*Edit layout* footer. Pressing the button once expands it to a **Confirm**
+state; pressing again runs the platform-specific install command.
+
+| Key               | Type   | Required | Description                                            |
+|-------------------|--------|----------|--------------------------------------------------------|
+| `name`            | string | yes      | CLI tool name shown in the UI (e.g. `"probe-rs"`)     |
+| `check`           | string | no       | Command used to detect the tool (default: `<name> --version`) |
+| `success_message` | string | no       | Message shown after successful install (e.g. restart notice)  |
+
+### `[tool.install]` *(optional)*
+
+Per-platform install commands. Only the platforms you provide will be offered.
+
+| Key     | Type   | Description                 |
+|---------|--------|-----------------------------|
+| `linux` | string | Install command for Linux   |
+| `mac`   | string | Install command for macOS   |
+| `win`   | string | Install command for Windows |
+
+```toml
+[tool]
+name  = "probe-rs"
+check = "probe-rs --version"
+success_message = "Restart your terminal for changes to take effect"
+
+[tool.install]
+linux = "curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-tools-installer.sh | sh"
+mac   = "curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-tools-installer.sh | sh"
+win   = "powershell -ExecutionPolicy ByPass -c \"irm https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-tools-installer.ps1 | iex\""
+```
+
+```toml
+[tool]
+name = "espflash"
+
+[tool.install]
+linux = "cargo install espflash"
+mac   = "cargo install espflash"
+win   = "cargo install espflash"
+```
+
+---
+
 ## `[run]` *(optional)*
 
 Override the default `probe-rs run` command with a custom shell command.
@@ -153,6 +200,50 @@ content = """
 default="my-board.toml"
 """
 ```
+
+### `[[new_project.generate]]` *(optional)*
+
+One or more shell commands to generate a new project via an external tool
+(e.g. `cargo generate`, `esp-generate`). When a board defines these, a
+**Generate Project** section appears in the New Project tab with a project
+name field, a location picker, and a button that runs the command in a
+terminal.
+
+If multiple entries are defined a dropdown appears first to select which
+template to use.
+
+| Key       | Type   | Description                                              |
+|-----------|--------|----------------------------------------------------------|
+| `label`   | string | Display name shown in the dropdown                       |
+| `command` | string | Shell command to run; supports `{{PROJECT_NAME}}`        |
+
+`{{PROJECT_NAME}}` is replaced with the value typed into the Project Name
+field before the command is sent to the terminal.
+
+**Single command** — use a plain string on `generate`:
+
+```toml
+[new_project]
+generate = "cargo generate esp-rs/esp-idf-template cargo --name {{PROJECT_NAME}}"
+```
+
+**Multiple commands** — use array-of-tables:
+
+```toml
+[[new_project.generate]]
+label   = "cargo generate (esp-idf-template)"
+command = "cargo generate esp-rs/esp-idf-template cargo --name {{PROJECT_NAME}}"
+
+[[new_project.generate]]
+label   = "esp-generate"
+command = "esp-generate --chip esp32c3 -o stack-smashing-protection -o esp-backtrace -o vscode {{PROJECT_NAME}}"
+```
+
+A board can have both `[[new_project.files]]` scaffolding and
+`[[new_project.generate]]` commands — both sections will be shown in the
+New Project tab.
+
+---
 
 ### Example
 

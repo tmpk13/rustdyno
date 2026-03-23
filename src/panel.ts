@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
 import { exec } from "child_process";
-import { autoSelectBoard, getActiveBoard, getActiveBoardFile, getBoardDir, getEffectivePort, getLayout, getPortOverride, getDefaultTargetFile, listBoards, PanelLayout, selectBoardByFile, setDefaultBoardFile, setDefaultTargetFile, setLayout, setPortOverride, getProbeMap, setProbeMapping, clearProbeBoard, setupBoardDir } from "./boardConfig";
+import { autoSelectBoard, getActiveBoard, getActiveBoardFile, getBoardDir, getEffectivePort, getLayout, getPortOverride, getDefaultTargetFile, listBoards, PanelLayout, selectBoardByFile, setDefaultBoardFile, setDefaultTargetFile, setLayout, setPortOverride, getProbeMap, setProbeMapping, clearProbeBoard, setupBoardDir, ToolInstallConfig } from "./boardConfig";
 
 const DEFAULT_ACTIONS: Record<string, { label: string; color: string }> = {
     build: { label: "Build", color: "#1e7ec8" },
@@ -225,6 +225,39 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
                         await vscode.env.clipboard.writeText(picked.detail);
                         vscode.window.showInformationMessage("Install command copied to clipboard.");
                     }
+                    break;
+                }
+
+                // ── Tool Install ──
+                case "checkTool": {
+                    const tool = getActiveBoard()?.tool;
+                    if (!tool) { break; }
+                    const checkCmd = tool.check ?? `${tool.name} --version`;
+                    exec(checkCmd, (err) => {
+                        const found = !err;
+                        view.webview.postMessage({ command: "toolStatus", data: { found } });
+                    });
+                    break;
+                }
+                case "installTool": {
+                    const tool = getActiveBoard()?.tool;
+                    if (!tool?.install) { break; }
+                    const plat = process.platform === "win32" ? "win" : process.platform === "darwin" ? "mac" : "linux";
+                    const cmd = tool.install[plat];
+                    if (!cmd) {
+                        vscode.window.showErrorMessage(`No install command for platform: ${plat}`);
+                        view.webview.postMessage({ command: "toolInstallResult", data: { success: false } });
+                        break;
+                    }
+                    const successMsg = tool.success_message;
+                    exec(cmd, { timeout: 120000 }, (err) => {
+                        if (err) {
+                            vscode.window.showErrorMessage(`Failed to install ${tool.name}: ${err.message}`);
+                            view.webview.postMessage({ command: "toolInstallResult", data: { success: false } });
+                        } else {
+                            view.webview.postMessage({ command: "toolInstallResult", data: { success: true, message: successMsg } });
+                        }
+                    });
                     break;
                 }
 
@@ -474,7 +507,9 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
                     drop: uri("imgs/drop.svg"),
                     eye: uri("imgs/eye.svg"),
                     eyeSlash: uri("imgs/eye-slash.svg"),
+                    down: uri("imgs/down.svg"),
                 },
+                tool: getActiveBoard()?.tool ?? null,
                 layout: getLayout() ?? null,
                 checkEnabled: this._checkEnabled,
             },

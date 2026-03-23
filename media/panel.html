@@ -18,8 +18,12 @@
       <button class="tab-overflow-btn" onclick="toggleOverflow(event)">&#x2026;</button>
     </div>
     <div id="overflowTray">
-      <button class="tab-btn overflow-tab" onclick="showDynamicTab('newProject')">New Project</button>
-      <button class="tab-btn overflow-tab" onclick="showDynamicTab('boardMaker')">Board Maker</button>
+      <div id="overflowDynamic"></div>
+      <div class="overflow-divider"></div>
+      <div id="overflowStatic">
+        <button class="tab-btn overflow-tab" onclick="showDynamicTab('newProject')">New Project</button>
+        <button class="tab-btn overflow-tab" onclick="showDynamicTab('boardMaker')">Board Maker</button>
+      </div>
     </div>
   </div>
 
@@ -130,6 +134,13 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <div id="toolInstallArea">
+      <div id="toolInstallTitle" class="label"></div>
+      <button id="toolInstallBtn" onclick="toolInstallClick()">
+        <img id="toolInstallIcon" class="icon-svg">
+      </button>
     </div>
 
     <div id="editFooter">

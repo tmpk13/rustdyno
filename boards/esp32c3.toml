@@ -3,6 +3,16 @@ name   = "ESP32-C3 (ESP-IDF)"
 chip   = "esp32c3"
 target = "riscv32imc-esp-espidf"
 
+[tool]
+name  = "espflash"
+check = "espflash --version"
+success_message = "Restart your terminal for changes to take effect"
+
+[tool.install]
+linux = "cargo install espflash"
+mac   = "cargo install espflash"
+win   = "cargo install espflash"
+
 [run]
 command = "cargo run --release"
 

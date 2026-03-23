@@ -85,10 +85,17 @@
     cursor: pointer;
     font-size: var(--rd-font-size);
     white-space: nowrap;
-    flex-shrink: 0;
+    flex-shrink: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 2.5rem;
     min-height: unset;
     width: auto;
     margin: 0;
+}
+
+.tab-btn.tab-overflowed {
+    display: none;
 }
 
 .tab-btn:hover {
@@ -126,6 +133,7 @@
     display: flex;
     align-items: center;
     overflow: hidden;
+    flex-wrap: wrap;
     max-height: 0;
     transition: max-height 0.15s ease, border-top-width 0.15s ease;
     border-top: 0px solid var(--rd-drop-border);
@@ -133,12 +141,52 @@
 }
 
 #overflowTray.open {
-    max-height: 2.5rem;
+    max-height: 8rem;
     border-top: 1px solid var(--rd-drop-border);
 }
 
 .overflow-tab {
     opacity: 0.7;
+}
+
+.overflow-divider {
+    width: 1px;
+    height: 1.2rem;
+    background: var(--rd-drop-border);
+    margin: 0 0.2rem;
+    flex-shrink: 0;
+}
+
+#overflowDynamic:empty + .overflow-divider {
+    display: none;
+}
+
+/* ── Vertical Tabs ── */
+#tabBar.vertical-tabs #tabRowWrap {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+#tabBar.vertical-tabs #tabRow {
+    flex-direction: column;
+    overflow: visible;
+}
+
+#tabBar.vertical-tabs .tab-btn {
+    flex-shrink: 0;
+    text-align: left;
+}
+
+#tabBar.vertical-tabs .tab-btn.tab-overflowed {
+    display: initial;
+}
+
+#tabBar.vertical-tabs .tab-overflow-btn {
+    display: none;
+}
+
+#tabBar.vertical-tabs #overflowTray {
+    display: none;
 }
 
 /* ── Tab Content ── */
@@ -1274,6 +1322,7 @@ button.done .btn-icon {
 #configSection,
 #probeNamingArea,
 #probeRsInstallArea,
+#toolInstallArea,
 #resetLayoutBtn,
 #np-action {
     display: none;
@@ -1283,6 +1332,95 @@ button.done .btn-icon {
     background: #b07d18;
     font-size: 0.75rem;
     min-height: 1.8rem;
+}
+
+/* ── Tool Install ── */
+#toolInstallArea {
+    display: none;
+    padding: 0.5rem 0;
+}
+
+#toolInstallTitle {
+    font-size: 0.75rem;
+    opacity: 0.8;
+    transition: all 0.25s ease;
+    max-height: 0;
+    overflow: hidden;
+    margin-bottom: 0;
+}
+
+#toolInstallTitle.tool-title-above {
+    max-height: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.tool-install-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-family: var(--rd-font);
+    color: var(--rd-btn-fg);
+    border-radius: 3px;
+    transition: all 0.25s ease;
+    padding: 0;
+}
+
+.tool-install-btn .icon-svg,
+.tool-install-btn .tool-check-icon {
+    width: 1rem;
+    height: 1rem;
+    filter: brightness(0) invert(1);
+}
+
+.tool-idle {
+    background: var(--rd-drop-bg);
+    width: 2rem;
+    height: 2rem;
+}
+
+.tool-idle:hover {
+    background: var(--rd-toolbar-hover);
+}
+
+.tool-confirm {
+    background: #b07d18;
+    width: 100%;
+    height: 2rem;
+}
+
+.tool-confirm:hover {
+    filter: brightness(1.15);
+}
+
+.tool-installing {
+    background: #b07d18;
+    width: 100%;
+    height: 2rem;
+    opacity: 0.7;
+    cursor: wait;
+    pointer-events: none;
+}
+
+.tool-success {
+    background: #388e3c;
+    width: 2rem;
+    height: 2rem;
+    pointer-events: none;
+}
+
+.tool-failed {
+    background: #c62828;
+    width: 100%;
+    height: 2rem;
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.tool-failed:hover {
+    filter: brightness(1.15);
 }
 
 /* "Hidden" label spacing inside hidden-files section */

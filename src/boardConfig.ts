@@ -28,6 +28,21 @@ export interface NewProjectConfig {
   generate?: string | GenerateCommand[];
 }
 
+export interface ToolInstallConfig {
+  /** Name of the CLI tool (e.g. "probe-rs", "espflash") */
+  name: string;
+  /** Command to check if the tool exists (e.g. "probe-rs --version") */
+  check?: string;
+  /** Install commands per platform */
+  install?: {
+    linux?: string;
+    mac?: string;
+    win?: string;
+  };
+  /** Message shown after successful install (e.g. "Restart your terminal") */
+  success_message?: string;
+}
+
 export interface ActionConfig {
   label?: string;
   color?: string;
@@ -44,6 +59,7 @@ export interface BoardConfig {
   flash: Record<string, unknown>;
   rtt: { enabled: boolean; channels: { up: number; name: string }[]; command?: string };
   run?: { command?: string };
+  tool?: ToolInstallConfig;
   new_project?: NewProjectConfig;
   actions?: Record<string, ActionConfig>;
   layout?: PanelLayout;

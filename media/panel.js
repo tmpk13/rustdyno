@@ -92,6 +92,7 @@ function switchTab(tabId) {
     }
 
     closeOverflow();
+    recalcTabs();
 }
 
 function showDynamicTab(panelId) {
@@ -103,6 +104,111 @@ function showDynamicTab(panelId) {
 
     if (panelId === 'newProject') {
         send('npRefreshBoards');
+    }
+}
+
+// ══════════════════════════════════════════════════════════════
+// Responsive tab overflow / vertical layout
+// ══════════════════════════════════════════════════════════════
+const VERTICAL_TAB_THRESHOLD = 200;
+let _recalcRAF = null;
+
+function recalcTabs() {
+    if (_recalcRAF) cancelAnimationFrame(_recalcRAF);
+    _recalcRAF = requestAnimationFrame(_recalcTabsImpl);
+}
+
+function _recalcTabsImpl() {
+    const tabBar = document.getElementById('tabBar');
+    const tabRow = document.getElementById('tabRow');
+    const overflowBtn = document.querySelector('.tab-overflow-btn');
+    const overflowDynamic = document.getElementById('overflowDynamic');
+    const barWidth = tabBar.offsetWidth;
+
+    // Vertical mode
+    if (barWidth > 0 && barWidth < VERTICAL_TAB_THRESHOLD) {
+        tabBar.classList.add('vertical-tabs');
+        overflowDynamic.innerHTML = '';
+        // Show all tabs in vertical mode (CSS handles visibility)
+        tabRow.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-overflowed'));
+        return;
+    }
+    tabBar.classList.remove('vertical-tabs');
+
+    // Reset all tabs to visible for measurement
+    const allTabs = Array.from(tabRow.querySelectorAll('.tab-btn'))
+        .filter(b => b.style.display !== 'none'); // skip hidden dynamic tab
+    allTabs.forEach(b => b.classList.remove('tab-overflowed'));
+    overflowDynamic.innerHTML = '';
+
+    // Measure available width (row minus overflow button)
+    const availableWidth = tabRow.clientWidth;
+    const btnWidth = overflowBtn.offsetWidth;
+
+    // Measure each tab's natural width
+    let usedWidth = 0;
+    let overflowStartIdx = -1;
+
+    // Temporarily prevent flex shrink for accurate measurement
+    allTabs.forEach(b => b.style.flexShrink = '0');
+    for (let i = 0; i < allTabs.length; i++) {
+        usedWidth += allTabs[i].offsetWidth;
+        if (usedWidth > availableWidth - btnWidth) {
+            overflowStartIdx = i;
+            break;
+        }
+    }
+    allTabs.forEach(b => b.style.flexShrink = '');
+
+    if (overflowStartIdx === -1) {
+        // All tabs fit — keep overflow button for static items (New Project, Board Maker)
+        overflowBtn.style.display = '';
+        return;
+    }
+
+    overflowBtn.style.display = '';
+
+    // Ensure active tab stays visible — swap with last visible if needed
+    const activeIdx = allTabs.findIndex(b => b.classList.contains('active'));
+    if (activeIdx >= overflowStartIdx) {
+        // Swap active tab to the last visible position
+        const lastVisibleIdx = overflowStartIdx - 1;
+        if (lastVisibleIdx >= 0) {
+            const activeTab = allTabs[activeIdx];
+            const lastVisible = allTabs[lastVisibleIdx];
+            // DOM swap
+            tabRow.insertBefore(activeTab, lastVisible);
+            // Update array to match
+            allTabs.splice(activeIdx, 1);
+            allTabs.splice(lastVisibleIdx, 0, activeTab);
+        }
+    }
+
+    // Re-measure after potential swap to get accurate cutoff
+    usedWidth = 0;
+    overflowStartIdx = -1;
+    allTabs.forEach(b => b.style.flexShrink = '0');
+    for (let i = 0; i < allTabs.length; i++) {
+        usedWidth += allTabs[i].offsetWidth;
+        if (usedWidth > availableWidth - btnWidth) {
+            overflowStartIdx = i;
+            break;
+        }
+    }
+    allTabs.forEach(b => b.style.flexShrink = '');
+
+    if (overflowStartIdx === -1) return;
+
+    // Mark overflowed tabs and clone into tray
+    for (let i = overflowStartIdx; i < allTabs.length; i++) {
+        allTabs[i].classList.add('tab-overflowed');
+        const clone = document.createElement('button');
+        clone.className = 'tab-btn overflow-tab';
+        clone.textContent = allTabs[i].textContent;
+        const tabId = allTabs[i].dataset.tab;
+        clone.addEventListener('click', () => switchTab(tabId));
+        if (allTabs[i].classList.contains('active')) clone.classList.add('active');
+        overflowDynamic.appendChild(clone);
     }
 }
 
@@ -135,6 +241,10 @@ document.querySelector('.tab-overflow-btn').addEventListener('mouseleave', () =>
         _startOverflowTimer();
     }
 });
+
+// Observe panel resizes and recalculate tab overflow
+new ResizeObserver(() => recalcTabs()).observe(document.getElementById('tabBar'));
+recalcTabs();
 
 // ══════════════════════════════════════════════════════════════
 // Board Controls
@@ -463,6 +573,87 @@ function setUris(uris) {
     if (checkSpin) { checkSpin.src = uris.refresh; }
     const checkDoneIcon = document.getElementById('checkDoneIcon');
     if (checkDoneIcon) { checkDoneIcon.src = uris.check; }
+    const toolIcon = document.getElementById('toolInstallIcon');
+    if (toolIcon && uris.down) { toolIcon.src = uris.down; }
+}
+
+// ══════════════════════════════════════════════════════════════
+// Tool Install Button
+// ══════════════════════════════════════════════════════════════
+let _toolState = 'idle'; // idle | confirm | installing | success | failed
+let _toolConfirmTimer = null;
+let _toolConfig = null;
+
+function updateToolInstallArea(tool) {
+    _toolConfig = tool;
+    const area = document.getElementById('toolInstallArea');
+    if (!tool) { area.style.display = 'none'; return; }
+    // show area but check tool availability first
+    area.style.display = '';
+    send('checkTool');
+}
+
+function showToolInstall(show, toolName) {
+    const area = document.getElementById('toolInstallArea');
+    if (!show || !_toolConfig) { area.style.display = 'none'; return; }
+    area.style.display = '';
+    const title = document.getElementById('toolInstallTitle');
+    title.textContent = 'Install ' + (_toolConfig.name || toolName || 'tool');
+    setToolState('idle');
+}
+
+function setToolState(state) {
+    _toolState = state;
+    const btn = document.getElementById('toolInstallBtn');
+    const title = document.getElementById('toolInstallTitle');
+    if (_toolConfirmTimer) { clearTimeout(_toolConfirmTimer); _toolConfirmTimer = null; }
+
+    btn.className = '';
+    btn.classList.add('tool-install-btn');
+
+    switch (state) {
+        case 'idle':
+            btn.classList.add('tool-idle');
+            title.classList.remove('tool-title-above');
+            btn.innerHTML = '<img id="toolInstallIcon" class="icon-svg" src="' + (_uris?.down || '') + '">';
+            break;
+        case 'confirm':
+            btn.classList.add('tool-confirm');
+            title.classList.add('tool-title-above');
+            btn.textContent = 'Confirm';
+            _toolConfirmTimer = setTimeout(() => setToolState('idle'), 3000);
+            break;
+        case 'installing':
+            btn.classList.add('tool-installing');
+            title.classList.add('tool-title-above');
+            btn.textContent = 'Installing…';
+            break;
+        case 'success':
+            btn.classList.add('tool-success');
+            title.classList.add('tool-title-above');
+            btn.innerHTML = '<img class="icon-svg tool-check-icon" src="' + (_uris?.check || '') + '">';
+            break;
+        case 'failed':
+            btn.classList.add('tool-failed');
+            title.classList.add('tool-title-above');
+            btn.textContent = '✕';
+            break;
+    }
+}
+
+function toolInstallClick() {
+    switch (_toolState) {
+        case 'idle':
+            setToolState('confirm');
+            break;
+        case 'confirm':
+            setToolState('installing');
+            send('installTool');
+            break;
+        case 'failed':
+            setToolState('confirm');
+            break;
+    }
 }
 
 function cloneTpl(id) {
@@ -549,7 +740,7 @@ function makeActionBtn(cmd, actionCfg, files, pickedFile, uris, cmdPreviews) {
 function render(state) {
     STATE = state;
     const { files, hiddenFiles, pickedFile, boards, activeBoardFile, activeName,
-        effectivePort, portIsFromConfig, portOverride, cmdPreviews, uris, layout, actions } = state;
+        effectivePort, portIsFromConfig, portOverride, cmdPreviews, uris, layout, actions, tool } = state;
 
     _tomlLayout = layout;
     const isFirst = _firstRender;
@@ -646,6 +837,9 @@ function render(state) {
     if (isFirst) {
         refreshPorts();
     }
+
+    // Tool install
+    updateToolInstallArea(tool);
 
     // Re-filter examples if loaded and board changed
     if (_examplesLoaded && allExamples.length) {
@@ -1682,6 +1876,23 @@ window.addEventListener('message', e => {
         case 'probeRsStatus': {
             const area = document.getElementById('probeRsInstallArea');
             if (area) { area.style.display = msg.data.installed ? 'none' : 'block'; }
+            break;
+        }
+        case 'toolStatus': {
+            showToolInstall(!msg.data.found, _toolConfig?.name);
+            break;
+        }
+        case 'toolInstallResult': {
+            if (msg.data.success) {
+                setToolState('success');
+                const title = document.getElementById('toolInstallTitle');
+                if (msg.data.message) { title.textContent = msg.data.message; }
+                else { title.textContent = 'Installed'; }
+            } else {
+                setToolState('failed');
+                const title = document.getElementById('toolInstallTitle');
+                title.textContent = 'Failed';
+            }
             break;
         }
         case 'checkDone':
