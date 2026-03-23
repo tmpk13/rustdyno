@@ -6,115 +6,251 @@
 </head>
 
 <body>
-
-  <div id="sectionsContainer">
-    <div class="panel-section" data-section="files">
-      <div class="section-row">
-        <span class="label">Files</span>
-        <div class="file-section-btns">
-          <button class="icon-btn" id="hiddenToggle" onclick="toggleHidden()" title="Toggle hidden files">
-            <img id="hiddenIcon" class="icon-svg">
-          </button>
-          <button class="icon-btn" onclick="spinRefresh('refreshIcon'); send('refresh')" title="Refresh file list">
-            <img id="refreshIcon" class="icon-svg">
-          </button>
-        </div>
-      </div>
-      <div class="file-list" id="fileList"></div>
-      <div id="hiddenSection">
-        <div class="label">Hidden</div>
-        <div class="file-list" id="hiddenList"></div>
-
-      </div>
-      <hr class="thick-divider">
+  <!-- ═══ Tab Bar ═══ -->
+  <div id="tabBar">
+    <button class="tab-btn active" data-tab="controls" onclick="switchTab('controls')">Controls</button>
+    <button class="tab-btn" data-tab="library" onclick="switchTab('library')">Library</button>
+    <button class="tab-btn" data-tab="examples" onclick="switchTab('examples')">Examples</button>
+    <button class="tab-btn tab-dynamic" data-tab="dynamic" style="display:none" onclick="switchTab('dynamic')"></button>
+    <button class="tab-overflow-btn" onclick="toggleOverflow(event)">&#x2026;</button>
+    <div id="overflowMenu" class="overflow-menu">
+      <div class="overflow-item" data-panel="newProject" onclick="showDynamicTab('newProject')">New Project</div>
+      <div class="overflow-item" data-panel="boardMaker" onclick="showDynamicTab('boardMaker')">Board Maker</div>
     </div>
+  </div>
 
-    <div class="panel-section" data-section="actions">
-      <div class="check-toggle-row">
-        <button class="check-toggle-btn" id="checkToggleBtn" onclick="toggleCheck()"
-          title="Toggle cargo check &amp; clippy">
-          <span class="check-toggle-icon">&#x276F;</span>
-          <span>Check &amp; Clippy</span>
-        </button>
-      </div>
-      <div id="checkBtnArea" style="display:none">
-        <button class="action-button check-action-btn" id="checkRunBtn" onclick="runCheck()">
-          <span class="btn-icon"><img id="checkRunIcon" class="btn-run-icon"></span>
-          <span class="btn-label">cargo check &amp;&amp; clippy</span>
-          <span class="btn-check"><img id="checkDoneIcon" class="btn-check-icon"></span>
-          <img class="btn-spin-icon" id="checkSpinIcon">
-        </button>
-      </div>
-      <div id="actionBtns"></div>
-    </div>
-    <div class="panel-section" data-section="rtt">
-      <button id="rttBtn" onclick="sendAction(this,'rtt')" class="action-button" data-tip-label="Attach to device output"
-        data-tip-cmd="">
-        <span class="btn-icon"><img id="rttRunIcon" class="btn-run-icon"></span>
-        <span class="btn-label">RTT Monitor</span>
-        <span class="btn-check"><img id="rttCheckIcon" class="btn-check-icon"></span>
-        <img class="btn-spin-icon">
-      </button>
-      <hr class="thick-divider">
-    </div>
-
-    <div class="panel-section" data-section="config">
-      <div class="config-header" onclick="toggleConfig()">
-        <img class="config-arrow" id="configArrow">
-        <span class="config-summary" id="configSummary"></span>
-        <span id="probeDot" class="probe-dot" title="Checking..."></span>
-      </div>
-      <div id="configSection">
-        <div class="label">Target</div>
-        <div class="cs-wrap">
-          <div class="cs-btn" onclick="toggleDrop(event,'menu-target')">
-            <span class="cs-val" id="cs-val-target">No files</span>
-            <img id="dropTarget" class="drop-icon">
+  <!-- ═══ Tab: Board Controls ═══ -->
+  <div class="tab-content active" id="tab-controls">
+    <div id="sectionsContainer">
+      <div class="panel-section" data-section="files">
+        <div class="section-row">
+          <span class="label">Files</span>
+          <div class="file-section-btns">
+            <button class="icon-btn" id="hiddenToggle" onclick="toggleHidden()" title="Toggle hidden files">
+              <img id="hiddenIcon" class="icon-svg">
+            </button>
+            <button class="icon-btn" onclick="spinRefresh('refreshIcon'); send('refresh')" title="Refresh file list">
+              <img id="refreshIcon" class="icon-svg">
+            </button>
           </div>
-          <div class="drop-menu" id="menu-target"></div>
         </div>
-
-        <hr class="thick-divider">
-        <div class="label">Board</div>
-        <div class="cs-wrap">
-          <div class="cs-btn" onclick="toggleDrop(event,'menu-board')">
-            <span class="cs-val" id="cs-val-board">-- choose a board --</span>
-            <img id="dropBoard" class="drop-icon">
-          </div>
-          <div class="drop-menu" id="menu-board"></div>
+        <div class="file-list" id="fileList"></div>
+        <div id="hiddenSection">
+          <div class="label">Hidden</div>
+          <div class="file-list" id="hiddenList"></div>
         </div>
-        <div class="active-board" id="activeBoardLabel"></div>
-
         <hr class="thick-divider">
-        <div class="label" id="portLabelEl">Port</div>
-        <div class="port-row">
+      </div>
+
+      <div class="panel-section" data-section="actions">
+        <div class="check-toggle-row">
+          <button class="check-toggle-btn" id="checkToggleBtn" onclick="toggleCheck()"
+            title="Toggle cargo check &amp; clippy">
+            <span class="check-toggle-icon">&#x276F;</span>
+            <span>Check &amp; Clippy</span>
+          </button>
+        </div>
+        <div id="checkBtnArea" style="display:none">
+          <button class="action-button check-action-btn" id="checkRunBtn" onclick="runCheck()">
+            <span class="btn-icon"><img id="checkRunIcon" class="btn-run-icon"></span>
+            <span class="btn-label">cargo check &amp;&amp; clippy</span>
+            <span class="btn-check"><img id="checkDoneIcon" class="btn-check-icon"></span>
+            <img class="btn-spin-icon" id="checkSpinIcon">
+          </button>
+        </div>
+        <div id="actionBtns"></div>
+      </div>
+      <div class="panel-section" data-section="rtt">
+        <button id="rttBtn" onclick="sendAction(this,'rtt')" class="action-button" data-tip-label="Attach to device output"
+          data-tip-cmd="">
+          <span class="btn-icon"><img id="rttRunIcon" class="btn-run-icon"></span>
+          <span class="btn-label">RTT Monitor</span>
+          <span class="btn-check"><img id="rttCheckIcon" class="btn-check-icon"></span>
+          <img class="btn-spin-icon">
+        </button>
+        <hr class="thick-divider">
+      </div>
+
+      <div class="panel-section" data-section="config">
+        <div class="config-header" onclick="toggleConfig()">
+          <img class="config-arrow" id="configArrow">
+          <span class="config-summary" id="configSummary"></span>
+          <span id="probeDot" class="probe-dot" title="Checking..."></span>
+        </div>
+        <div id="configSection">
+          <div class="label">Target</div>
           <div class="cs-wrap">
-            <div class="cs-btn" onclick="toggleDrop(event,'menu-port')">
-              <span class="cs-val" id="cs-val-port">auto</span>
-              <img id="dropPort" class="drop-icon">
+            <div class="cs-btn" onclick="toggleDrop(event,'menu-target')">
+              <span class="cs-val" id="cs-val-target">No files</span>
+              <img id="dropTarget" class="drop-icon">
             </div>
-            <div class="drop-menu" id="menu-port">
-              <div class="drop-item drop-active" data-val="" onclick="pickPort('','auto')">-- auto --</div>
-            </div>
+            <div class="drop-menu" id="menu-target"></div>
           </div>
-          <button class="icon-btn" onclick="refreshPorts()" title="Refresh port list"><img
-              id="refreshPortIcon" class="icon-svg"></button>
-        </div>
-        <div id="probeRsInstallArea">
+
           <hr class="thick-divider">
-          <button id="probeRsInstallBtn" onclick="send('installProbeRs')" title="probe-rs not found — click to get install command">
-            ⚠ probe-rs not found — Install
-          </button>
-        </div>
-        <div id="probeNamingArea">
+          <div class="label">Board</div>
+          <div class="cs-wrap">
+            <div class="cs-btn" onclick="toggleDrop(event,'menu-board')">
+              <span class="cs-val" id="cs-val-board">-- choose a board --</span>
+              <img id="dropBoard" class="drop-icon">
+            </div>
+            <div class="drop-menu" id="menu-board"></div>
+          </div>
+          <div class="active-board" id="activeBoardLabel"></div>
+
           <hr class="thick-divider">
-          <div class="label">Probes</div>
-          <div id="probeNamingList"></div>
+          <div class="label" id="portLabelEl">Port</div>
+          <div class="port-row">
+            <div class="cs-wrap">
+              <div class="cs-btn" onclick="toggleDrop(event,'menu-port')">
+                <span class="cs-val" id="cs-val-port">auto</span>
+                <img id="dropPort" class="drop-icon">
+              </div>
+              <div class="drop-menu" id="menu-port">
+                <div class="drop-item drop-active" data-val="" onclick="pickPort('','auto')">-- auto --</div>
+              </div>
+            </div>
+            <button class="icon-btn" onclick="refreshPorts()" title="Refresh port list"><img
+                id="refreshPortIcon" class="icon-svg"></button>
+          </div>
+          <div id="probeRsInstallArea">
+            <hr class="thick-divider">
+            <button id="probeRsInstallBtn" onclick="send('installProbeRs')" title="probe-rs not found — click to get install command">
+              ⚠ probe-rs not found — Install
+            </button>
+          </div>
+          <div id="probeNamingArea">
+            <hr class="thick-divider">
+            <div class="label">Probes</div>
+            <div id="probeNamingList"></div>
+          </div>
         </div>
+      </div>
+    </div>
+
+    <div id="editFooter">
+      <span class="label">Edit layout</span>
+      <div id="editHeader">
+        <button class="icon-btn edit-reset-btn" id="resetLayoutBtn" onclick="resetLayout()" title="Reset layout to default">
+          <img id="editRefreshIcon" class="icon-svg">
+        </button>
+        <button class="icon-btn edit-toggle-btn" id="editToggleBtn" onclick="toggleEditMode()" title="Edit panel layout">&#x270E;</button>
       </div>
     </div>
   </div>
 
+  <!-- ═══ Tab: Board Library ═══ -->
+  <div class="tab-content" id="tab-library">
+    <div class="section-row">
+      <span class="label">Board Library</span>
+      <div class="lib-header-btns">
+        <button class="icon-btn" onclick="libForceDownloadAll(this)" title="Force check and download all from GitHub">
+          <img id="libDownIcon" class="icon-svg">
+        </button>
+        <button class="icon-btn" onclick="libLoad()" title="Refresh">
+          <img id="libRefreshIcon" class="icon-svg">
+        </button>
+      </div>
+    </div>
+    <input id="libSearch" type="text" placeholder="Search boards&#8230;" oninput="libFilterBoards(this.value)" autocomplete="off" spellcheck="false">
+    <div id="libContent"><div class="lib-status">Loading&#8230;</div></div>
+    <span class="label">Double click checks to remove</span>
+  </div>
+
+  <!-- ═══ Tab: Examples ═══ -->
+  <div class="tab-content" id="tab-examples">
+    <div class="section-row">
+      <span class="label">Examples</span>
+      <button class="icon-btn" onclick="exLoad()" title="Refresh">
+        <img id="exRefreshIcon" class="icon-svg">
+      </button>
+    </div>
+    <div class="examples-filter-row">
+      <input id="exSearch" type="text" placeholder="Search examples&#8230;" oninput="exFilterExamples(this.value)" autocomplete="off" spellcheck="false">
+      <label class="examples-checkbox"><input type="checkbox" id="exShowAll" onchange="exToggleShowAll()"> All</label>
+    </div>
+    <div id="exContent"><div class="lib-status">Loading&#8230;</div></div>
+  </div>
+
+  <!-- ═══ Tab: New Project (dynamic) ═══ -->
+  <div class="tab-content" id="tab-newProject">
+    <div id="np-setup" style="display:none">
+      <p class="np-hint">No board config directory found in this workspace.</p>
+      <button id="np-setup-btn" onclick="npSetupWorkspace()">Setup .rustdyno</button>
+    </div>
+    <div class="section-row">
+      <span class="label">Board</span>
+      <button class="icon-btn" onclick="npRefreshBoards()" title="Refresh board list">
+        <img id="npRefreshIcon" class="icon-svg">
+      </button>
+    </div>
+    <input id="np-search" type="text" placeholder="Search boards&#8230;" oninput="npFilterBoards(this.value)" autocomplete="off" spellcheck="false">
+    <div id="np-board-list" class="lib-list"></div>
+    <p class="np-hint" id="np-hint">Select a board with a <code>[new_project]</code> config to scaffold a project.</p>
+    <div id="np-action">
+      <span class="label">Project Name</span>
+      <input id="np-name" type="text" placeholder="my-embedded-app" autocomplete="off" spellcheck="false" oninput="npClearError(this)">
+      <span class="label np-location-label">Location</span>
+      <div class="np-location-row">
+        <input id="np-location" type="text" placeholder="Select folder&#8230;" autocomplete="off" spellcheck="false" oninput="npClearError(this)">
+        <button class="np-browse-btn" onclick="npBrowseLocation()" title="Browse">&#8230;</button>
+      </div>
+      <button id="np-create-btn" onclick="npCreateProject()">Create Project</button>
+      <button id="np-apply-btn" onclick="npApplyBoard()">Apply Board to Current Project</button>
+    </div>
+  </div>
+
+  <!-- ═══ Tab: Board Maker (dynamic) ═══ -->
+  <div class="tab-content" id="tab-boardMaker">
+    <span class="label">Board Maker</span>
+    <p class="bm-hint">Generate a board TOML config file.</p>
+
+    <div class="bm-field-row">
+      <span class="bm-field-label">Filename</span>
+      <input id="bm-filename" class="bm-input" type="text" placeholder="my-board" autocomplete="off" spellcheck="false" data-section="meta" data-field="filename">
+    </div>
+
+    <div class="bm-section">
+      <div class="bm-section-header">[board] <span class="bm-required">required</span></div>
+      <div class="bm-section-body" style="display:block">
+        <div class="bm-field-row">
+          <span class="bm-field-label">name</span>
+          <input class="bm-input" type="text" placeholder="My Board" data-section="board" data-field="name">
+        </div>
+        <div class="bm-field-row">
+          <span class="bm-field-label">chip</span>
+          <input class="bm-input" type="text" placeholder="STM32F411CEUx" data-section="board" data-field="chip">
+        </div>
+        <div class="bm-field-row">
+          <span class="bm-field-label">target</span>
+          <div class="bm-combo-wrap">
+            <input class="bm-input bm-combo-input" type="text" placeholder="thumbv7em-none-eabihf" data-section="board" data-field="target" autocomplete="off">
+            <img class="bm-combo-toggle" src="{{DROP_URI}}" alt="v">
+            <div class="bm-combo-list" id="bm-target-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="bm-optional-sections"></div>
+
+    <div class="bm-add-section-wrap">
+      <button id="bm-add-section-btn" class="bm-add-btn bm-add-section-btn" onclick="bmToggleAddMenu()">+</button>
+      <div id="bm-add-menu" class="bm-add-menu" style="display:none"></div>
+    </div>
+
+    <div class="bm-actions">
+      <div id="bm-defaults-warning" class="bm-warning" style="display:none">
+        Some fields are using defaults. Press again to confirm.
+      </div>
+      <div id="bm-error" class="bm-error" style="display:none"></div>
+      <button id="bm-save-btn" onclick="bmSaveBoard()">Save Board</button>
+      <button id="bm-preview-btn" class="bm-preview-btn" onclick="bmTogglePreview()">Preview TOML</button>
+      <pre id="bm-preview" class="bm-preview" style="display:none"></pre>
+    </div>
+  </div>
+
+  <!-- ═══ Templates (Board Controls) ═══ -->
   <template id="tpl-file-item">
     <div class="file-item" draggable="true">
       <span class="file-name"></span>
@@ -159,16 +295,7 @@
     </div>
   </template>
 
-  <div id="editFooter">
-    <span class="label">Edit layout</span>
-    <div id="editHeader">
-      <button class="icon-btn edit-reset-btn" id="resetLayoutBtn" onclick="resetLayout()" title="Reset layout to default">
-        <img id="refreshIcon" class="icon-svg">
-      </button>
-      <button class="icon-btn edit-toggle-btn" id="editToggleBtn" onclick="toggleEditMode()" title="Edit panel layout">&#x270E;</button>
-    </div>
-  </div>
-
+  <script>const DROP_URI = "{{DROP_URI}}";</script>
   <script src="{{JS_URI}}"></script>
 </body>
 

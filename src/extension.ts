@@ -5,7 +5,7 @@ import { build } from "./builder";
 import { flash } from "./flasher";
 import { startRtt } from "./rtt";
 import { newProject } from "./newProject";
-import { BoardPanelProvider, NewProjectPanelProvider, BoardLibraryPanelProvider, BoardMakerPanelProvider } from "./panel";
+import { BoardPanelProvider } from "./panel";
 
 
 export function activate(ctx: vscode.ExtensionContext) {
@@ -21,21 +21,6 @@ export function activate(ctx: vscode.ExtensionContext) {
     vscode.window.registerWebviewViewProvider(
       BoardPanelProvider.viewType,
       new BoardPanelProvider(ctx),
-      { webviewOptions: { retainContextWhenHidden: true } }
-    ),
-    vscode.window.registerWebviewViewProvider(
-      NewProjectPanelProvider.viewType,
-      new NewProjectPanelProvider(ctx),
-      { webviewOptions: { retainContextWhenHidden: true } }
-    ),
-    vscode.window.registerWebviewViewProvider(
-      BoardLibraryPanelProvider.viewType,
-      new BoardLibraryPanelProvider(ctx),
-      { webviewOptions: { retainContextWhenHidden: true } }
-    ),
-    vscode.window.registerWebviewViewProvider(
-      BoardMakerPanelProvider.viewType,
-      new BoardMakerPanelProvider(ctx),
       { webviewOptions: { retainContextWhenHidden: true } }
     ),
   );

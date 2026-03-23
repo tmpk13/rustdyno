@@ -10,18 +10,21 @@ const DEFAULT_ACTIONS: Record<string, { label: string; color: string }> = {
     rtt:   { label: "RTT Monitor", color: "#4caf50" },
 };
 import { getActiveFile, getCachedFiles, getHiddenFiles, hideFile, openFile, refreshFiles, reorderFiles, unhideFile } from "./filePicker";
-import { fetchLibraryList, downloadBoardToWorkspace, addBoardFromCache, listCachedBoards, isBoardInWorkspace, removeBoard, fetchBoardContent, getWorkspaceBoardContent, updateBoardInWorkspace } from "./boardLibrary";
+import { fetchLibraryList, downloadBoardToWorkspace, addBoardFromCache, listCachedBoards, isBoardInWorkspace, removeBoard, fetchBoardContent, getWorkspaceBoardContent, updateBoardInWorkspace, fetchExamplesList } from "./boardLibrary";
 import { createNewProject, applyBoardToProject, showApplyResult } from "./newProject";
 import { flash } from "./flasher";
+import { runCheckAndClippy } from "./checker";
 
 function loadHtml(ext: vscode.ExtensionContext, webview: vscode.Webview, htmlFile: string, jsFile: string): string {
     const mediaPath = vscode.Uri.joinPath(ext.extensionUri, "media");
     const cssUri = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, "panel.css"));
     const jsUri = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, jsFile));
+    const dropUri = webview.asWebviewUri(vscode.Uri.joinPath(ext.extensionUri, "imgs", "drop.svg"));
     const htmlPath = path.join(ext.extensionUri.fsPath, "media", htmlFile);
     return fs.readFileSync(htmlPath, "utf8")
         .replace("{{CSS_URI}}", cssUri.toString())
-        .replace("{{JS_URI}}", jsUri.toString());
+        .replace("{{JS_URI}}", jsUri.toString())
+        .replace(/\{\{DROP_URI\}\}/g, dropUri.toString());
 }
 
 export class BoardPanelProvider implements vscode.WebviewViewProvider {
@@ -54,6 +57,8 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
         if (savedTarget) { openFile(savedTarget); }
         view.webview.html = this.getHtml();
         this.sendState();
+        this.sendLibrarySetup();
+        this.sendNewProjectState();
 
         refreshFiles().then(() => { this.sendState(); });
 
@@ -64,6 +69,7 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
 
         view.webview.onDidReceiveMessage(async (msg) => {
             switch (msg.command) {
+                // ── Board Controls ──
                 case "selectBoard":
                     selectBoardByFile(msg.data);
                     setDefaultBoardFile(msg.data);
@@ -221,6 +227,198 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
                     }
                     break;
                 }
+
+                // ── Board Library ──
+                case "fetchLibrary": {
+                    const repo = vscode.workspace.getConfiguration("rustdyno").get<string>("boardLibraryRepo", "");
+                    if (!repo) {
+                        view.webview.postMessage({ command: "libraryError", data: "No repo configured. Set rustdyno.boardLibraryRepo in settings." });
+                        return;
+                    }
+                    try {
+                        let entries: import("./boardLibrary").LibraryEntry[];
+                        let offline = false;
+                        try {
+                            entries = await fetchLibraryList(repo);
+                        } catch {
+                            offline = true;
+                            entries = listCachedBoards().map(name => ({ name, path: name, downloadUrl: "" }));
+                        }
+                        const withStatus = await Promise.all(entries.map(async e => {
+                            const inWorkspace = isBoardInWorkspace(e.name);
+                            let hasUpdate = false;
+                            if (inWorkspace && !offline) {
+                                try {
+                                    const localContent = getWorkspaceBoardContent(e.name);
+                                    const remoteContent = await fetchBoardContent(e.downloadUrl);
+                                    hasUpdate = localContent !== undefined && localContent.trim() !== remoteContent.trim();
+                                } catch { /* ignore update check failure */ }
+                            }
+                            return { ...e, inWorkspace, hasUpdate };
+                        }));
+                        view.webview.postMessage({ command: "libraryList", data: withStatus });
+                    } catch (err: unknown) {
+                        const errMsg = err instanceof Error ? err.message : String(err);
+                        console.error("[rustdyno] fetchLibrary error:", errMsg);
+                        view.webview.postMessage({ command: "libraryError", data: `Failed to fetch library: ${errMsg}` });
+                    }
+                    break;
+                }
+                case "downloadBoard": {
+                    const { name, downloadUrl } = msg.data as { name: string; downloadUrl: string };
+                    try {
+                        if (downloadUrl) {
+                            await downloadBoardToWorkspace(name, downloadUrl);
+                        } else {
+                            addBoardFromCache(name);
+                        }
+                        view.webview.postMessage({ command: "boardAddedToProject", data: name });
+                        vscode.window.showInformationMessage(`Board added to project: ${name}`);
+                    } catch (err: unknown) {
+                        const errMsg = err instanceof Error ? err.message : String(err);
+                        view.webview.postMessage({ command: "boardError", data: { name, error: errMsg } });
+                        vscode.window.showErrorMessage(`Failed to download board: ${errMsg}`);
+                    }
+                    break;
+                }
+                case "updateBoard": {
+                    const { name, downloadUrl } = msg.data as { name: string; downloadUrl: string };
+                    try {
+                        await updateBoardInWorkspace(name, downloadUrl);
+                        view.webview.postMessage({ command: "boardUpdated", data: name });
+                        vscode.window.showInformationMessage(`Board updated: ${name}`);
+                    } catch (err: unknown) {
+                        const errMsg = err instanceof Error ? err.message : String(err);
+                        view.webview.postMessage({ command: "boardError", data: { name, error: errMsg } });
+                        vscode.window.showErrorMessage(`Failed to update board: ${errMsg}`);
+                    }
+                    break;
+                }
+                case "removeBoard": {
+                    const name = msg.data as string;
+                    removeBoard(name);
+                    view.webview.postMessage({ command: "boardRemoved", data: name });
+                    break;
+                }
+                case "forceDownloadAll": {
+                    const repo = vscode.workspace.getConfiguration("rustdyno").get<string>("boardLibraryRepo", "");
+                    if (!repo) {
+                        view.webview.postMessage({ command: "libraryError", data: "No repo configured. Set rustdyno.boardLibraryRepo in settings." });
+                        return;
+                    }
+                    try {
+                        const entries = await fetchLibraryList(repo);
+                        const workspace = entries.filter(e => isBoardInWorkspace(e.name));
+                        await Promise.all(workspace.map(e => updateBoardInWorkspace(e.name, e.downloadUrl)));
+                        view.webview.postMessage({ command: "forceDownloadDone" });
+                        vscode.window.showInformationMessage(`Updated ${workspace.length} board(s) from GitHub.`);
+                    } catch (err: unknown) {
+                        const errMsg = err instanceof Error ? err.message : String(err);
+                        view.webview.postMessage({ command: "libraryError", data: `Force download failed: ${errMsg}` });
+                        vscode.window.showErrorMessage(`Force download failed: ${errMsg}`);
+                    }
+                    break;
+                }
+                case "openSettings": {
+                    vscode.commands.executeCommand("workbench.action.openSettings", "rustdyno.boardLibraryRepo");
+                    break;
+                }
+
+                // ── Examples ──
+                case "fetchExamples": {
+                    const repo = vscode.workspace.getConfiguration("rustdyno").get<string>("boardLibraryRepo", "");
+                    if (!repo) {
+                        view.webview.postMessage({ command: "examplesError", data: "No repo configured. Set rustdyno.boardLibraryRepo in settings." });
+                        return;
+                    }
+                    try {
+                        const examples = await fetchExamplesList(repo);
+                        view.webview.postMessage({ command: "examplesList", data: examples });
+                    } catch (err: unknown) {
+                        const errMsg = err instanceof Error ? err.message : String(err);
+                        view.webview.postMessage({ command: "examplesError", data: `Failed to fetch examples: ${errMsg}` });
+                    }
+                    break;
+                }
+                case "openExample": {
+                    const { codeContent } = msg.data as { name: string; codePath: string; codeContent: string };
+                    const doc = await vscode.workspace.openTextDocument({
+                        content: codeContent,
+                        language: "rust",
+                    });
+                    await vscode.window.showTextDocument(doc, { preview: false });
+                    break;
+                }
+
+                // ── New Project ──
+                case "npRefreshBoards":
+                    this.sendNewProjectState();
+                    break;
+                case "npSelectBoard":
+                    selectBoardByFile(msg.data);
+                    setDefaultBoardFile(msg.data);
+                    this.sendNewProjectState();
+                    this.sendState();
+                    break;
+                case "browseFolder": {
+                    const picked = await vscode.window.showOpenDialog({
+                        canSelectFiles: false,
+                        canSelectFolders: true,
+                        canSelectMany: false,
+                        openLabel: "Select folder",
+                    });
+                    if (picked?.[0]) {
+                        view.webview.postMessage({ command: "browseResult", data: picked[0].fsPath });
+                    }
+                    break;
+                }
+                case "createProject": {
+                    const { name, location } = msg.data as { name: string; location: string };
+                    setupBoardDir(this.ext.extensionUri.fsPath);
+                    createNewProject(name, location);
+                    break;
+                }
+                case "setup":
+                    setupBoardDir(this.ext.extensionUri.fsPath);
+                    vscode.window.showInformationMessage("Board config directory created.");
+                    this.sendNewProjectState();
+                    break;
+                case "applyBoard": {
+                    const board = getActiveBoard();
+                    if (!board?.new_project) {
+                        vscode.window.showErrorMessage("No board with [new_project] config selected.");
+                        return;
+                    }
+                    const result = applyBoardToProject(this.ext.extensionUri.fsPath);
+                    if (result) {
+                        showApplyResult(result, board.board.name);
+                    }
+                    break;
+                }
+
+                // ── Board Maker ──
+                case "saveBoard": {
+                    const { filename, content } = msg.data as { filename: string; content: string };
+                    const dir = getBoardDir();
+                    if (!fs.existsSync(dir)) {
+                        fs.mkdirSync(dir, { recursive: true });
+                    }
+                    const filePath = path.join(dir, filename);
+                    if (fs.existsSync(filePath)) {
+                        const overwrite = await vscode.window.showWarningMessage(
+                            `${filename} already exists. Overwrite?`,
+                            "Overwrite", "Cancel"
+                        );
+                        if (overwrite !== "Overwrite") {
+                            view.webview.postMessage({ command: "saveError", data: "Save cancelled." });
+                            return;
+                        }
+                    }
+                    fs.writeFileSync(filePath, content, "utf-8");
+                    view.webview.postMessage({ command: "saved" });
+                    vscode.window.showInformationMessage(`Board saved: ${filename}`);
+                    break;
+                }
             }
         });
     }
@@ -265,18 +463,48 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
         });
     }
 
+    private sendLibrarySetup() {
+        if (!this.view) { return; }
+        const webview = this.view.webview;
+        const uri = (rel: string) => webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, rel)).toString();
+        webview.postMessage({
+            command: "libSetup",
+            uris: {
+                check: uri("imgs/check.svg"),
+                down: uri("imgs/down.svg"),
+                refresh: uri("imgs/refresh.svg"),
+            },
+        });
+    }
+
+    private sendNewProjectState() {
+        if (!this.view) { return; }
+        const webview = this.view.webview;
+        const uri = (rel: string) => webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, rel)).toString();
+        const board = getActiveBoard();
+        webview.postMessage({
+            command: "npInit",
+            data: {
+                hasConfig: !!board?.new_project,
+                hasBoardDir: fs.existsSync(getBoardDir()),
+                boardName: board?.board.name ?? "no board selected",
+                boards: listBoards(),
+                activeBoardFile: getActiveBoardFile(),
+                uris: { drop: uri("imgs/drop.svg"), refresh: uri("imgs/refresh.svg") },
+            },
+        });
+    }
+
     private _doRunCheck(wsRoot: string, view: vscode.WebviewView) {
         if (!this._checkPanel) { return; }
         this._checkPanel.webview.postMessage({ command: "checkRunning" });
         view.webview.postMessage({ command: "checkRunning" });
-        import("./checker.js").then(({ runCheckAndClipy }) => {
-            runCheckAndClipy(wsRoot).then((result: unknown) => {
-                this._checkPanel?.webview.postMessage({ command: "checkResults", data: result });
-                view.webview.postMessage({ command: "checkDone" });
-            }).catch((err: unknown) => {
-                vscode.window.showErrorMessage(`cargo check failed: ${err}`);
-                view.webview.postMessage({ command: "checkDone" });
-            });
+        runCheckAndClippy(wsRoot).then((result) => {
+            this._checkPanel?.webview.postMessage({ command: "checkResults", data: result });
+            view.webview.postMessage({ command: "checkDone" });
+        }).catch((err: unknown) => {
+            vscode.window.showErrorMessage(`cargo check failed: ${err}`);
+            view.webview.postMessage({ command: "checkDone" });
         });
     }
 
@@ -301,7 +529,6 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
                 return;
             }
             exec(`${probePath} list`, (err, stdout) => {
-                // Detect if probe-rs binary is missing (exit code 127 = command not found)
                 const notInstalled = !!err && (
                     err.message.toLowerCase().match(/not found|no such file|cannot find/) !== null ||
                     String((err as NodeJS.ErrnoException).code) === "127"
@@ -320,7 +547,6 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
                 const port = getEffectivePort();
                 const connected = port ? probes.some(p => p.id === port) : probes.length > 0;
 
-                // Auto-select board when a mapped probe appears for the first time
                 const probeMap = getProbeMap();
                 for (const probe of probes) {
                     if (!this._seenProbeIds.has(probe.id)) {
@@ -378,278 +604,5 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
 
     private getHtml(): string {
         return loadHtml(this.ext, this.view!.webview, "panel.html", "panel.js");
-    }
-}
-
-export class NewProjectPanelProvider implements vscode.WebviewViewProvider {
-    public static readonly viewType = "rustdyno.newProject";
-
-    private view?: vscode.WebviewView;
-
-    constructor(private readonly ext: vscode.ExtensionContext) { }
-
-    resolveWebviewView(view: vscode.WebviewView) {
-        this.view = view;
-        view.webview.options = {
-            enableScripts: true,
-            localResourceRoots: [
-                vscode.Uri.joinPath(this.ext.extensionUri, "media"),
-                vscode.Uri.joinPath(this.ext.extensionUri, "imgs"),
-            ],
-        };
-        view.webview.html = this.getHtml();
-        this.sendState();
-        view.onDidChangeVisibility(() => { if (view.visible) { this.sendState(); } });
-        view.webview.onDidReceiveMessage(async (msg) => {
-            if (msg.command === "refreshBoards") {
-                this.sendState();
-            } else if (msg.command === "selectBoard") {
-                selectBoardByFile(msg.data);
-                setDefaultBoardFile(msg.data);
-                this.sendState();
-            } else if (msg.command === "browseFolder") {
-                const picked = await vscode.window.showOpenDialog({
-                    canSelectFiles: false,
-                    canSelectFolders: true,
-                    canSelectMany: false,
-                    openLabel: "Select folder",
-                });
-                if (picked?.[0]) {
-                    view.webview.postMessage({ command: "browseResult", data: picked[0].fsPath });
-                }
-            } else if (msg.command === "createProject") {
-                const { name, location } = msg.data as { name: string; location: string };
-                setupBoardDir(this.ext.extensionUri.fsPath);
-                createNewProject(name, location);
-            } else if (msg.command === "setup") {
-                setupBoardDir(this.ext.extensionUri.fsPath);
-                vscode.window.showInformationMessage("Board config directory created.");
-                this.sendState();
-            } else if (msg.command === "applyBoard") {
-                const board = getActiveBoard();
-                if (!board?.new_project) {
-                    vscode.window.showErrorMessage("No board with [new_project] config selected.");
-                    return;
-                }
-                const result = applyBoardToProject(this.ext.extensionUri.fsPath);
-                if (result) {
-                    showApplyResult(result, board.board.name);
-                }
-            }
-        });
-    }
-
-    refresh() {
-        this.sendState();
-    }
-
-    private sendState() {
-        if (!this.view) { return; }
-        const webview = this.view.webview;
-        const uri = (rel: string) => webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, rel)).toString();
-        const board = getActiveBoard();
-        webview.postMessage({
-            command: "init",
-            data: {
-                hasConfig: !!board?.new_project,
-                hasBoardDir: fs.existsSync(getBoardDir()),
-                boardName: board?.board.name ?? "no board selected",
-                boards: listBoards(),
-                activeBoardFile: getActiveBoardFile(),
-                uris: { drop: uri("imgs/drop.svg"), refresh: uri("imgs/refresh.svg") },
-            },
-        });
-    }
-
-    private getHtml(): string {
-        return loadHtml(this.ext, this.view!.webview, "new-project.html", "new-project.js");
-    }
-}
-
-export class BoardLibraryPanelProvider implements vscode.WebviewViewProvider {
-    public static readonly viewType = "rustdyno.boardLibrary";
-
-    private view?: vscode.WebviewView;
-
-    constructor(private readonly ext: vscode.ExtensionContext) { }
-
-    resolveWebviewView(view: vscode.WebviewView) {
-        this.view = view;
-        view.webview.options = {
-            enableScripts: true,
-            localResourceRoots: [
-                vscode.Uri.joinPath(this.ext.extensionUri, "media"),
-                vscode.Uri.joinPath(this.ext.extensionUri, "imgs"),
-            ],
-        };
-        view.webview.html = this.getHtml();
-        this.sendSetup();
-
-        view.webview.onDidReceiveMessage(async (msg) => {
-            switch (msg.command) {
-                case "fetchLibrary": {
-                    const repo = vscode.workspace.getConfiguration("rustdyno").get<string>("boardLibraryRepo", "");
-                    if (!repo) {
-                        view.webview.postMessage({ command: "libraryError", data: "No repo configured. Set rustdyno.boardLibraryRepo in settings." });
-                        return;
-                    }
-                    try {
-                        let entries: import("./boardLibrary").LibraryEntry[];
-                        let offline = false;
-                        try {
-                            entries = await fetchLibraryList(repo);
-                        } catch {
-                            // Internet unavailable — fall back to local cache
-                            offline = true;
-                            entries = listCachedBoards().map(name => ({ name, path: name, downloadUrl: "" }));
-                        }
-                        const withStatus = await Promise.all(entries.map(async e => {
-                            const inWorkspace = isBoardInWorkspace(e.name);
-                            let hasUpdate = false;
-                            if (inWorkspace && !offline) {
-                                try {
-                                    const localContent = getWorkspaceBoardContent(e.name);
-                                    const remoteContent = await fetchBoardContent(e.downloadUrl);
-                                    hasUpdate = localContent !== undefined && localContent.trim() !== remoteContent.trim();
-                                } catch { /* ignore update check failure */ }
-                            }
-                            return { ...e, inWorkspace, hasUpdate };
-                        }));
-                        view.webview.postMessage({ command: "libraryList", data: withStatus });
-                    } catch (err: unknown) {
-                        const errMsg = err instanceof Error ? err.message : String(err);
-                        console.error("[rustdyno] fetchLibrary error:", errMsg);
-                        view.webview.postMessage({ command: "libraryError", data: `Failed to fetch library: ${errMsg}` });
-                    }
-                    break;
-                }
-                case "downloadBoard": {
-                    const { name, downloadUrl } = msg.data as { name: string; downloadUrl: string };
-                    try {
-                        if (downloadUrl) {
-                            await downloadBoardToWorkspace(name, downloadUrl);
-                        } else {
-                            // Offline fallback: copy from cache
-                            addBoardFromCache(name);
-                        }
-                        view.webview.postMessage({ command: "boardAddedToProject", data: name });
-                        vscode.window.showInformationMessage(`Board added to project: ${name}`);
-                    } catch (err: unknown) {
-                        const errMsg = err instanceof Error ? err.message : String(err);
-                        view.webview.postMessage({ command: "boardError", data: { name, error: errMsg } });
-                        vscode.window.showErrorMessage(`Failed to download board: ${errMsg}`);
-                    }
-                    break;
-                }
-                case "updateBoard": {
-                    const { name, downloadUrl } = msg.data as { name: string; downloadUrl: string };
-                    try {
-                        await updateBoardInWorkspace(name, downloadUrl);
-                        view.webview.postMessage({ command: "boardUpdated", data: name });
-                        vscode.window.showInformationMessage(`Board updated: ${name}`);
-                    } catch (err: unknown) {
-                        const errMsg = err instanceof Error ? err.message : String(err);
-                        view.webview.postMessage({ command: "boardError", data: { name, error: errMsg } });
-                        vscode.window.showErrorMessage(`Failed to update board: ${errMsg}`);
-                    }
-                    break;
-                }
-                case "removeBoard": {
-                    const name = msg.data as string;
-                    removeBoard(name);
-                    view.webview.postMessage({ command: "boardRemoved", data: name });
-                    break;
-                }
-                case "forceDownloadAll": {
-                    const repo = vscode.workspace.getConfiguration("rustdyno").get<string>("boardLibraryRepo", "");
-                    if (!repo) {
-                        view.webview.postMessage({ command: "libraryError", data: "No repo configured. Set rustdyno.boardLibraryRepo in settings." });
-                        return;
-                    }
-                    try {
-                        const entries = await fetchLibraryList(repo);
-                        const workspace = entries.filter(e => isBoardInWorkspace(e.name));
-                        await Promise.all(workspace.map(e => updateBoardInWorkspace(e.name, e.downloadUrl)));
-                        view.webview.postMessage({ command: "forceDownloadDone" });
-                        vscode.window.showInformationMessage(`Updated ${workspace.length} board(s) from GitHub.`);
-                    } catch (err: unknown) {
-                        const errMsg = err instanceof Error ? err.message : String(err);
-                        view.webview.postMessage({ command: "libraryError", data: `Force download failed: ${errMsg}` });
-                        vscode.window.showErrorMessage(`Force download failed: ${errMsg}`);
-                    }
-                    break;
-                }
-                case "openSettings": {
-                    vscode.commands.executeCommand("workbench.action.openSettings", "rustdyno.boardLibraryRepo");
-                    break;
-                }
-            }
-        });
-    }
-
-    private sendSetup() {
-        if (!this.view) { return; }
-        const webview = this.view.webview;
-        const uri = (rel: string) => webview.asWebviewUri(vscode.Uri.joinPath(this.ext.extensionUri, rel)).toString();
-        webview.postMessage({
-            command: "setup",
-            uris: {
-                check: uri("imgs/check.svg"),
-                down: uri("imgs/down.svg"),
-                refresh: uri("imgs/refresh.svg"),
-            },
-        });
-    }
-
-    private getHtml(): string {
-        return loadHtml(this.ext, this.view!.webview, "library.html", "library.js");
-    }
-}
-
-export class BoardMakerPanelProvider implements vscode.WebviewViewProvider {
-    public static readonly viewType = "rustdyno.boardMaker";
-
-    private view?: vscode.WebviewView;
-
-    constructor(private readonly ext: vscode.ExtensionContext) { }
-
-    resolveWebviewView(view: vscode.WebviewView) {
-        this.view = view;
-        view.webview.options = {
-            enableScripts: true,
-            localResourceRoots: [
-                vscode.Uri.joinPath(this.ext.extensionUri, "media"),
-                vscode.Uri.joinPath(this.ext.extensionUri, "imgs"),
-            ],
-        };
-        view.webview.html = this.getHtml();
-
-        view.webview.onDidReceiveMessage(async (msg) => {
-            if (msg.command === "saveBoard") {
-                const { filename, content } = msg.data as { filename: string; content: string };
-                const dir = getBoardDir();
-                if (!fs.existsSync(dir)) {
-                    fs.mkdirSync(dir, { recursive: true });
-                }
-                const filePath = path.join(dir, filename);
-                if (fs.existsSync(filePath)) {
-                    const overwrite = await vscode.window.showWarningMessage(
-                        `${filename} already exists. Overwrite?`,
-                        "Overwrite", "Cancel"
-                    );
-                    if (overwrite !== "Overwrite") {
-                        view.webview.postMessage({ command: "saveError", data: "Save cancelled." });
-                        return;
-                    }
-                }
-                fs.writeFileSync(filePath, content, "utf-8");
-                view.webview.postMessage({ command: "saved" });
-                vscode.window.showInformationMessage(`Board saved: ${filename}`);
-            }
-        });
-    }
-
-    private getHtml(): string {
-        return loadHtml(this.ext, this.view!.webview, "board-maker.html", "board-maker.js");
     }
 }

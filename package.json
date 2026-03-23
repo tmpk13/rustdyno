@@ -86,22 +86,7 @@
         {
           "type": "webview",
           "id": "rustdyno.panel",
-          "name": "Board Controls"
-        },
-        {
-          "type": "webview",
-          "id": "rustdyno.newProject",
-          "name": "New Project"
-        },
-        {
-          "type": "webview",
-          "id": "rustdyno.boardLibrary",
-          "name": "Board Library"
-        },
-        {
-          "type": "webview",
-          "id": "rustdyno.boardMaker",
-          "name": "Board Maker"
+          "name": "rustdyno"
         }
       ]
     }

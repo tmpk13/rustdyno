@@ -48,10 +48,156 @@
     --rd-toolbar-hover:  var(--vscode-toolbar-hoverBackground);
 }
 
-/* Sub-panels (library, new-project) that share this CSS but have no #sectionsContainer */
-body.sub-panel {
-    padding: 0.625rem;
+/* ── Tab Bar ── */
+#tabBar {
+    display: flex;
+    align-items: center;
+    background: var(--rd-editor-header);
+    border-bottom: 1px solid var(--rd-drop-border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    flex-shrink: 0;
+    overflow-x: auto;
+    gap: 0;
+}
+
+.tab-btn {
+    padding: 0.4rem 0.6rem;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    color: var(--rd-fg);
+    opacity: 0.6;
+    cursor: pointer;
+    font-size: var(--rd-font-size);
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-height: unset;
+    width: auto;
+    margin: 0;
+}
+
+.tab-btn:hover {
+    opacity: 0.85;
+    background: var(--rd-toolbar-hover);
+    outline: none !important;
+}
+
+.tab-btn.active {
+    opacity: 1;
+    border-bottom-color: var(--rd-focus);
+}
+
+.tab-overflow-btn {
+    padding: 0.4rem 0.5rem;
+    background: none;
+    border: none;
+    border-radius: 0;
+    color: var(--rd-fg);
+    cursor: pointer;
+    font-size: 1rem;
+    opacity: 0.6;
+    margin-left: auto;
+    min-height: unset;
+    width: auto;
+}
+
+.tab-overflow-btn:hover {
+    opacity: 0.85;
+    background: var(--rd-toolbar-hover);
+    outline: none !important;
+}
+
+.overflow-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: var(--rd-drop-bg);
+    border: 1px solid var(--rd-drop-border);
+    z-index: 200;
+    min-width: 10rem;
+    border-radius: 0.25rem;
+}
+
+.overflow-menu.open {
+    display: block;
+}
+
+.overflow-item {
+    padding: 0.4rem 0.75rem;
+    cursor: pointer;
+    color: var(--rd-drop-fg);
+    font-size: 0.8rem;
+}
+
+.overflow-item:hover {
+    background: var(--rd-toolbar-hover);
+}
+
+/* ── Tab Content ── */
+.tab-content {
+    display: none;
+    flex: 1;
     overflow-y: auto;
+    flex-direction: column;
+}
+
+.tab-content.active {
+    display: flex;
+}
+
+#tab-controls {
+    overflow: hidden;
+}
+
+#tab-library,
+#tab-examples,
+#tab-newProject,
+#tab-boardMaker {
+    padding: 0.625rem;
+}
+
+/* ── Examples ── */
+.examples-filter-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.examples-filter-row input[type="text"] {
+    flex: 1;
+}
+
+.examples-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    white-space: nowrap;
+    font-size: 0.75rem;
+    opacity: 0.8;
+    cursor: pointer;
+}
+
+.examples-checkbox input[type="checkbox"] {
+    width: auto;
+    min-height: unset;
+    margin: 0;
+}
+
+.example-item {
+    cursor: pointer;
+}
+
+.example-board {
+    font-size: 0.7rem;
+    opacity: 0.5;
+    margin-left: auto;
+    flex-shrink: 0;
+    padding-left: 0.5rem;
 }
 
 /* Panel root */
@@ -252,8 +398,9 @@ body {
     margin-bottom: 0.5rem;
 }
 
-#search,
-#np-search {
+#libSearch,
+#np-search,
+#exSearch {
     width: 100%;
     box-sizing: border-box;
     margin-bottom: 0.375rem;
@@ -268,14 +415,16 @@ body {
     transition: border-color 0.12s ease;
 }
 
-#search:hover,
-#np-search:hover {
+#libSearch:hover,
+#np-search:hover,
+#exSearch:hover {
     border-color: rgba(255, 255, 255, 0.75) !important;
     outline: none !important;
 }
 
-#search:focus,
-#np-search:focus {
+#libSearch:focus,
+#np-search:focus,
+#exSearch:focus {
     outline: 3px solid var(--rd-focus) !important;
     outline-offset: -1px;
     border-color: transparent !important;
@@ -1466,6 +1615,89 @@ button.done .btn-icon {
     margin-bottom: 0.25rem;
     padding: 0.25rem 0.5rem;
     white-space: pre-line;
+}
+
+/* Combo toggle (drop.svg arrow) */
+.bm-combo-toggle {
+    position: absolute;
+    right: 0.375rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0.625rem;
+    height: 0.625rem;
+    cursor: pointer;
+    opacity: 0.5;
+    pointer-events: auto;
+}
+
+body.vscode-dark .bm-combo-toggle,
+body.vscode-high-contrast .bm-combo-toggle {
+    filter: invert(1);
+}
+
+.bm-combo-toggle:hover {
+    opacity: 0.9;
+}
+.bm-combo-wrap .bm-combo-input {
+    padding-right: 1.25rem;
+}
+
+/* Section with remove button */
+.bm-section-removable {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.bm-remove-section {
+    background: transparent;
+    border: none;
+    color: var(--rd-fg);
+    opacity: 0.4;
+    font-size: 0.875rem;
+    cursor: pointer;
+    padding: 0 0.25rem;
+    min-height: auto;
+    line-height: 1;
+}
+.bm-remove-section:hover {
+    opacity: 1;
+    color: var(--rd-error-fg);
+}
+
+/* Add section button + dropdown */
+.bm-add-section-wrap {
+    position: relative;
+    margin-bottom: 0.5rem;
+}
+.bm-add-section-btn {
+    width: 100%;
+    font-size: 1rem;
+    min-height: 1.5rem;
+    padding: 0;
+    line-height: 1;
+}
+.bm-add-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: var(--rd-drop-bg);
+    border: 1px solid var(--rd-drop-border);
+    border-radius: 0.25rem;
+    margin-top: 2px;
+    overflow: hidden;
+}
+.bm-add-menu-item {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+.bm-add-menu-item:hover,
+.bm-add-menu-item:focus {
+    background: var(--rd-active-bg);
+    color: var(--rd-active-fg);
+    outline: none;
 }
 
 /* Universal hover border for all selectable UI elements */

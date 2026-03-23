@@ -2,6 +2,7 @@ import * as https from "https";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
+import * as TOML from "@iarna/toml";
 
 let _globalBoardsDir: string | undefined;
 
@@ -134,4 +135,51 @@ export async function updateBoardInWorkspace(filename: string, downloadUrl: stri
     if (!dir) { throw new Error("No workspace open"); }
     if (!fs.existsSync(dir)) { fs.mkdirSync(dir, { recursive: true }); }
     fs.writeFileSync(path.join(dir, filename), content, "utf-8");
+}
+
+export interface ExampleEntry {
+    name: string;
+    board: string;
+    codePath: string;
+    codeContent: string;
+    repoPath: string;
+}
+
+export async function fetchExamplesList(repo: string): Promise<ExampleEntry[]> {
+    const repoInfo = JSON.parse(await httpsGet(`https://api.github.com/repos/${repo}`)) as { default_branch: string };
+    const branch = repoInfo.default_branch;
+
+    const treeData = JSON.parse(await httpsGet(
+        `https://api.github.com/repos/${repo}/git/trees/${branch}?recursive=2`
+    )) as { tree: Array<{ path: string; type: string }> };
+
+    const exampleFiles = treeData.tree
+        .filter(i => i.type === "blob" && i.path.endsWith(".toml") && i.path.startsWith("examples/"));
+
+    const examples: ExampleEntry[] = [];
+    for (const file of exampleFiles) {
+        try {
+            const rawUrl = `https://raw.githubusercontent.com/${repo}/${branch}/${file.path}`;
+            const content = await httpsGet(rawUrl);
+            const parsed = TOML.parse(content) as {
+                example?: {
+                    name?: string;
+                    board?: string;
+                    code?: { path?: string; content?: string };
+                };
+            };
+            if (parsed.example?.name && parsed.example?.board && parsed.example?.code?.content) {
+                examples.push({
+                    name: parsed.example.name,
+                    board: parsed.example.board,
+                    codePath: parsed.example.code.path ?? "src/main.rs",
+                    codeContent: parsed.example.code.content,
+                    repoPath: file.path,
+                });
+            }
+        } catch {
+            // Skip malformed example TOMLs
+        }
+    }
+    return examples;
 }
