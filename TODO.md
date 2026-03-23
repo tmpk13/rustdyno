@@ -150,7 +150,7 @@
 
 - [ ] Make it so error messages can be copied
 
-- [ ] 
+- [ ] Make checkbox for the 
 
 - [ ] Swap to using flex UI
 
