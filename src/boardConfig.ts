@@ -145,6 +145,45 @@ export function setDefaultTargetFile(relativePath: string): void {
   writeRdynoToml(data);
 }
 
+export interface BinTarget {
+  name: string;
+  path: string;
+}
+
+export function getCargoTargets(): BinTarget[] {
+  const wsRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  if (!wsRoot) { return []; }
+  const cargoPath = path.join(wsRoot, "Cargo.toml");
+  if (!fs.existsSync(cargoPath)) { return []; }
+  try {
+    const cargo = TOML.parse(fs.readFileSync(cargoPath, "utf-8")) as {
+      package?: { name?: string };
+      bin?: Array<{ name: string; path?: string }>;
+    };
+    const targets: BinTarget[] = [];
+
+    // Implicit default bin from src/main.rs
+    if (fs.existsSync(path.join(wsRoot, "src", "main.rs"))) {
+      const pkgName = cargo.package?.name ?? "main";
+      targets.push({ name: pkgName, path: "src/main.rs" });
+    }
+
+    // Explicit [[bin]] sections
+    if (Array.isArray(cargo.bin)) {
+      for (const bin of cargo.bin) {
+        const binPath = bin.path ?? `src/bin/${bin.name}.rs`;
+        if (!targets.some(t => t.path === binPath)) {
+          targets.push({ name: bin.name, path: binPath });
+        }
+      }
+    }
+
+    return targets;
+  } catch {
+    return [];
+  }
+}
+
 export function getLayout(): PanelLayout | undefined {
   const layout = activeBoard?.layout;
   if (!layout) { return undefined; }

@@ -429,7 +429,46 @@ function onSectionDrop(e) {
 }
 
 // ── Panel Background Palette ──
+const PALETTE_DARK = [
+    { color: '#1e1e3a', title: 'Midnight Blue' },
+    { color: '#1a3a1a', title: 'Forest Green' },
+    { color: '#3a1a1a', title: 'Dark Red' },
+    { color: '#3a2e1a', title: 'Warm Amber' },
+    { color: '#2a1a3a', title: 'Dark Purple' },
+    { color: '#1a3a3a', title: 'Dark Teal' },
+    { color: '#2a2a2a', title: 'Charcoal' },
+];
+const PALETTE_LIGHT = [
+    { color: '#dde4f7', title: 'Soft Blue' },
+    { color: '#d5ecd5', title: 'Soft Green' },
+    { color: '#f5d5d5', title: 'Soft Red' },
+    { color: '#f5ead5', title: 'Soft Amber' },
+    { color: '#ead5f5', title: 'Soft Lavender' },
+    { color: '#d5f0ee', title: 'Soft Teal' },
+    { color: '#e8e8e8', title: 'Light Gray' },
+];
+
 let _paletteOpen = false;
+let _paletteDark = null; // null = auto-detect
+
+function _vscodeIsDark() {
+    const kind = document.body.getAttribute('data-vscode-theme-kind');
+    // default to light if unset
+    return kind === 'vscode-dark' || kind === 'vscode-high-contrast';
+}
+
+function _updatePaletteSwatches() {
+    const isDark = _paletteDark !== null ? _paletteDark : _vscodeIsDark();
+    const palette = isDark ? PALETTE_DARK : PALETTE_LIGHT;
+    document.querySelectorAll('.palette-swatch').forEach((el, i) => {
+        if (!palette[i]) { return; }
+        el.style.background = palette[i].color;
+        el.title = palette[i].title;
+        el.onclick = () => applyPanelBg(palette[i].color);
+    });
+    const modeBtn = document.getElementById('paletteModeBtn');
+    if (modeBtn) { modeBtn.textContent = isDark ? '\u263D' : '\u2600'; }
+}
 
 function togglePalette() {
     _paletteOpen = !_paletteOpen;
@@ -437,6 +476,13 @@ function togglePalette() {
     const btn = document.getElementById('paletteToggleBtn');
     if (row) { row.style.display = _paletteOpen ? 'flex' : 'none'; }
     if (btn) { btn.style.opacity = _paletteOpen ? '1' : '0.5'; }
+    if (_paletteOpen) { _updatePaletteSwatches(); }
+}
+
+function togglePaletteMode() {
+    const cur = _paletteDark !== null ? _paletteDark : _vscodeIsDark();
+    _paletteDark = !cur;
+    _updatePaletteSwatches();
 }
 
 function applyPanelBg(color) {

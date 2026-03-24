@@ -164,6 +164,11 @@
 
 - [ ] Add esp32s3 board 
 
+- [ ] Short names get arbitrary numbers at end of names
+
+- [ ] Remove split main
+- [ ] Remove drop-icon buttons in the action buttons
+
 # ?
 - [ ] integrate installer for board toolchains??
 

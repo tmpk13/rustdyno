@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
 import { exec } from "child_process";
-import { autoSelectBoard, getActiveBoard, getActiveBoardFile, getBoardDir, getEffectivePort, getLayout, getPortOverride, getDefaultTargetFile, listBoards, PanelLayout, selectBoardByFile, setDefaultBoardFile, setDefaultTargetFile, setLayout, setPortOverride, getProbeMap, setProbeMapping, clearProbeBoard, setupBoardDir, ToolInstallConfig, getPanelBg, setPanelBg } from "./boardConfig";
+import { autoSelectBoard, getActiveBoard, getActiveBoardFile, getBoardDir, getEffectivePort, getLayout, getPortOverride, getDefaultTargetFile, listBoards, PanelLayout, selectBoardByFile, setDefaultBoardFile, setDefaultTargetFile, setLayout, setPortOverride, getProbeMap, setProbeMapping, clearProbeBoard, setupBoardDir, ToolInstallConfig, getPanelBg, setPanelBg, getCargoTargets, BinTarget } from "./boardConfig";
 
 const DEFAULT_ACTIONS: Record<string, { label: string; color: string }> = {
     build: { label: "Build", color: "#1e7ec8" },
@@ -54,7 +54,13 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
 
         if (!getActiveBoard()) { autoSelectBoard(); }
         const savedTarget = getDefaultTargetFile();
-        if (savedTarget) { openFile(savedTarget); }
+        if (savedTarget) {
+            openFile(savedTarget);
+        } else {
+            const targets = getCargoTargets();
+            const main = targets.find(t => t.path === "src/main.rs") ?? targets[0];
+            if (main) { openFile(main.path); }
+        }
         view.webview.html = this.getHtml();
         this.sendState();
         this.sendLibrarySetup();
@@ -76,9 +82,6 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
                     this.sendState();
                     break;
                 case "selectFile": {
-                    openFile(msg.data);
-                    if (!getDefaultTargetFile()) { setDefaultTargetFile(msg.data); }
-                    this.sendState();
                     const wsRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
                     if (wsRoot) {
                         const uri = vscode.Uri.file(path.join(wsRoot, msg.data));
@@ -490,6 +493,7 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
             data: {
                 files: getCachedFiles(),
                 hiddenFiles: getHiddenFiles(),
+                binTargets: getCargoTargets() as BinTarget[],
                 pickedFile: getActiveFile(),
                 boards: listBoards(),
                 activeBoardFile: getActiveBoardFile(),
