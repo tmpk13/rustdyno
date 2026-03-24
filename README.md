@@ -42,11 +42,6 @@ Install the tools for the boards you intend to use.
 <hr>
 <br>
 
-### Major TODO
- - [ ] Add examples tab
- - [ ] Add support for cargo generate
- - [ ] Test all current boards
- - [ ] Add new board configs (pico, nrf52840, ...)
 
 <hr>
 <br>
