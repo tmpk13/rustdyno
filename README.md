@@ -8,9 +8,16 @@ github.com/tmpk13/rustdyno
 
 
 ## Run
+<<<<<<< HEAD
+Install: `bun install`
 Compile: `bun run compile`  
 Build extension: `bunx vsce package`  
 Tests: `bun run test:unit`  
+=======
+Compile: `bun run compile`  
+Build extension: `bunx vsce package`  
+Tests: `bun run test:unit`  
+>>>>>>> main
 
 <hr>
 

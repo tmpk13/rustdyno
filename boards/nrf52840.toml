@@ -1,0 +1,97 @@
+[board]
+name   = "nRF52840 DK"
+chip   = "nRF52840_xxAA"
+target = "thumbv7em-none-eabihf"
+
+[probe]
+protocol = "swd"
+speed    = 4000          # kHz
+
+[flash]
+restore_unwritten = false
+halt_afterwards   = false
+
+[rtt]
+enabled  = true
+channels = [{ up = 0, name = "Terminal" }]
+
+# ---------------------------------------------------------------------------
+# [new_project] — files and settings scaffolded when creating a new project
+# ---------------------------------------------------------------------------
+[new_project]
+runner = "probe-rs run --chip nRF52840_xxAA --protocol swd"
+
+[new_project.dependencies]
+cortex-m         = { version = "0.7.7", features = ["inline-asm", "critical-section-single-core"] }
+cortex-m-rt      = "0.7.5"
+panic-halt       = "1.0"
+rtt-target       = "0.6"
+nrf52840-hal     = { version = "0.16", features = ["rt"] }
+
+[[new_project.files]]
+path              = "rustdyno.toml"
+replace_if_exists = true
+content = """
+default="nrf52840.toml"
+"""
+
+[[new_project.files]]
+path    = "src/main.rs"
+content = """
+#![no_std]
+#![no_main]
+
+use cortex_m_rt::entry;
+use panic_halt as _;
+use rtt_target::{rtt_init_print, rprintln};
+
+#[entry]
+fn main() -> ! {
+    rtt_init_print!();
+    rprintln!(\"Hello from nRF52840!\");
+    loop {}
+}
+"""
+
+[[new_project.files]]
+path              = "Embed.toml"
+replace_if_exists = true
+content = """
+[default.general]
+chip = \"nRF52840_xxAA\"
+
+[default.reset]
+halt_afterwards = false
+
+[default.rtt]
+enabled = true
+
+[default.gdb]
+enabled = false
+"""
+
+[[new_project.files]]
+path              = "memory.x"
+replace_if_exists = true
+content = """
+MEMORY {
+    FLASH : ORIGIN = 0x00000000, LENGTH = 1024K
+    RAM   : ORIGIN = 0x20000000, LENGTH = 256K
+}
+"""
+
+[[new_project.files]]
+path              = ".cargo/config.toml"
+replace_if_exists = true
+content = """
+[target.thumbv7em-none-eabihf]
+runner    = \"probe-rs run --chip nRF52840_xxAA --protocol {{PROTOCOL}}\"
+rustflags = [
+  \"-C\", \"linker=rust-lld\",
+  \"-C\", \"link-arg=-Tlink.x\",
+  \"-C\", \"link-arg=-Tmemory.x\",
+]
+
+[build]
+target = \"thumbv7em-none-eabihf\"
+"""

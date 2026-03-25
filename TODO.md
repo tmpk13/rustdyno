@@ -164,6 +164,14 @@
 
 - [ ] Add esp32s3 board 
 
+- [ ] Short names get arbitrary numbers at end of names
+
+- [x] Remove split main
+- [x] Remove drop-icon buttons in the action buttons
+
+- [ ] Attempt to auto detect board and ask to use/download (non intrusive (Don't focus))
+        from the long/short name - use closest as default if not set in rustdyno
+
 # ?
 - [ ] integrate installer for board toolchains??
 

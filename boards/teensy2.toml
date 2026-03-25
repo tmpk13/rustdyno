@@ -1,0 +1,68 @@
+[board]
+name   = "Teensy 2.0 (ATmega32U4)"
+chip   = "ATmega32U4"
+target = "avr-atmega32u4"
+
+# ATmega32U4 is flashed via HalfKay bootloader using teensy_loader_cli.
+# Press the reset button on the Teensy to enter bootloader mode before flashing.
+
+[rtt]
+enabled = false          # No RTT on AVR; use USB serial (CDC) for output
+
+# ---------------------------------------------------------------------------
+# [new_project] — files and settings scaffolded when creating a new project
+# ---------------------------------------------------------------------------
+[new_project]
+runner = "teensy_loader_cli --mcu=TEENSY2 -w -v"
+
+[new_project.dependencies]
+avr-device  = { version = "0.5", features = ["atmega32u4"] }
+panic-halt  = "1.0"
+ufmt        = "0.2"
+
+[[new_project.files]]
+path              = "rustdyno.toml"
+replace_if_exists = true
+content = """
+default="teensy2.toml"
+"""
+
+[[new_project.files]]
+path    = "src/main.rs"
+content = """
+#![no_std]
+#![no_main]
+
+use avr_device::atmega32u4 as pac;
+use panic_halt as _;
+
+#[avr_device::entry]
+fn main() -> ! {
+    let _dp = pac::Peripherals::take().unwrap();
+    loop {}
+}
+"""
+
+[[new_project.files]]
+path              = "rust-toolchain.toml"
+replace_if_exists = true
+content = """
+[toolchain]
+channel    = \"nightly\"
+components = [\"rust-src\"]
+"""
+
+[[new_project.files]]
+path              = ".cargo/config.toml"
+replace_if_exists = true
+content = """
+[build]
+target = \"avr-atmega32u4\"
+
+[target.avr-atmega32u4]
+# teensy_loader_cli expects a .hex file; wrap with objcopy
+runner = \"sh -c 'avr-objcopy -O ihex -R .eeprom $0 $0.hex && teensy_loader_cli --mcu=TEENSY2 -w -v $0.hex'\"
+
+[unstable]
+build-std = [\"core\"]
+"""

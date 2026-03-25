@@ -154,21 +154,26 @@
         </div>
       </div>
       <div id="paletteRow" style="display:none">
-        <button class="palette-swatch" style="background:#1e1e3a" onclick="applyPanelBg('#1e1e3a')" title="Midnight Blue"></button>
-        <button class="palette-swatch" style="background:#1a3a1a" onclick="applyPanelBg('#1a3a1a')" title="Forest Green"></button>
-        <button class="palette-swatch" style="background:#3a1a1a" onclick="applyPanelBg('#3a1a1a')" title="Dark Red"></button>
-        <button class="palette-swatch" style="background:#3a2e1a" onclick="applyPanelBg('#3a2e1a')" title="Warm Amber"></button>
-        <button class="palette-swatch" style="background:#2a1a3a" onclick="applyPanelBg('#2a1a3a')" title="Dark Purple"></button>
-        <button class="palette-swatch" style="background:#1a3a3a" onclick="applyPanelBg('#1a3a3a')" title="Dark Teal"></button>
-        <button class="palette-swatch" style="background:#2a2a2a" onclick="applyPanelBg('#2a2a2a')" title="Charcoal"></button>
-        <div class="palette-end-group">
-          <button class="palette-reset-btn" onclick="resetPanelBg()" title="Reset background">&#x21BA;</button>
+        <div id="paletteColors">
+          <button class="palette-swatch" title=""></button>
+          <button class="palette-swatch" title=""></button>
+          <button class="palette-swatch" title=""></button>
+          <button class="palette-swatch" title=""></button>
+          <button class="palette-swatch" title=""></button>
+          <button class="palette-swatch" title=""></button>
+          <button class="palette-swatch" title=""></button>
+        </div>
+        
+        <div id="colorControls">
           <label class="palette-picker-btn" title="Custom color">
             <input type="color" id="paletteColorPicker" oninput="applyPanelBg(this.value)">
             <span>&#x2026;</span>
           </label>
+          <button class="palette-mode-btn" id="paletteModeBtn" onclick="togglePaletteMode()" title="Toggle light/dark palette"></button>
+          <button class="palette-reset-btn" onclick="resetPanelBg()" title="Reset background">&#x21BA;</button>
         </div>
       </div>
+      
     </div>
   </div>
 
@@ -334,22 +339,8 @@
     </button>
   </template>
 
-  <template id="tpl-action-split">
-    <div class="split-group">
-      <button class="split-main action-button">
-        <div class="btn-progress"></div>
-        <span class="btn-icon"><img class="btn-run-icon"></span>
-        <span class="btn-label"></span>
-        <span class="btn-check"><img class="btn-check-icon"></span>
-        <img class="btn-spin-icon">
-        <span class="btn-phase-label"></span>
-      </button>
-      <button class="split-drop"><img class="drop-icon"></button>
-      <div class="drop-menu"></div>
-    </div>
-  </template>
 
-  <script>const DROP_URI = "{{DROP_URI}}";</script>
+<script>const DROP_URI = "{{DROP_URI}}";</script>
   <script src="{{JS_URI}}"></script>
 </body>
 

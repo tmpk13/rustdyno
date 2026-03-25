@@ -1,0 +1,93 @@
+[board]
+name   = "SAMD21 (ATSAMD21G18A)"
+chip   = "ATSAMD21G18A"
+target = "thumbv6m-none-eabi"
+
+[probe]
+protocol = "swd"
+speed    = 4000          # kHz
+
+[flash]
+restore_unwritten = false
+halt_afterwards   = false
+
+[rtt]
+enabled  = true
+channels = [{ up = 0, name = "Terminal" }]
+
+# ---------------------------------------------------------------------------
+# [new_project] — files and settings scaffolded when creating a new project
+# ---------------------------------------------------------------------------
+[new_project]
+runner = "probe-rs run --chip ATSAMD21G18A --protocol swd"
+
+[new_project.dependencies]
+cortex-m     = { version = "0.7.7", features = ["inline-asm", "critical-section-single-core"] }
+cortex-m-rt  = "0.7.5"
+panic-halt   = "1.0"
+rtt-target   = "0.6"
+atsamd-hal   = { version = "0.18", features = ["samd21g18a", "rt"] }
+
+[[new_project.files]]
+path              = "rustdyno.toml"
+replace_if_exists = true
+content = """
+default="samd21.toml"
+"""
+
+[[new_project.files]]
+path    = "src/main.rs"
+content = """
+#![no_std]
+#![no_main]
+
+use cortex_m_rt::entry;
+use panic_halt as _;
+use rtt_target::{rtt_init_print, rprintln};
+
+#[entry]
+fn main() -> ! {
+    rtt_init_print!();
+    rprintln!(\"Hello from ATSAMD21G18A!\");
+    loop {}
+}
+"""
+
+[[new_project.files]]
+path              = "Embed.toml"
+replace_if_exists = true
+content = """
+[default.general]
+chip = \"ATSAMD21G18A\"
+
+[default.reset]
+halt_afterwards = false
+
+[default.rtt]
+enabled = true
+
+[default.gdb]
+enabled = false
+"""
+
+[[new_project.files]]
+path              = "memory.x"
+replace_if_exists = true
+content = """
+MEMORY {
+    FLASH : ORIGIN = 0x00000000, LENGTH = 256K
+    RAM   : ORIGIN = 0x20000000, LENGTH = 32K
+}
+"""
+
+[[new_project.files]]
+path              = ".cargo/config.toml"
+replace_if_exists = true
+content = """
+[target.thumbv6m-none-eabi]
+runner    = \"probe-rs run --chip ATSAMD21G18A --protocol {{PROTOCOL}}\"
+rustflags = [\"-C\", \"link-arg=-Tlink.x\", \"-C\", \"link-arg=-Tmemory.x\"]
+
+[build]
+target = \"thumbv6m-none-eabi\"
+"""

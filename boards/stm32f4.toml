@@ -1,0 +1,104 @@
+[board]
+name   = "STM32F411 Black Pill"
+chip   = "STM32F411CEUx"
+target = "thumbv7em-none-eabihf"
+
+[tool]
+name  = "probe-rs"
+check = "probe-rs --version"
+success_message = "Restart your terminal for changes to take effect"
+
+[tool.install]
+linux = "curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-tools-installer.sh | sh"
+mac   = "curl --proto '=https' --tlsv1.2 -LsSf https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-tools-installer.sh | sh"
+win   = "powershell -ExecutionPolicy ByPass -c \"irm https://github.com/probe-rs/probe-rs/releases/latest/download/probe-rs-tools-installer.ps1 | iex\""
+
+[probe]
+protocol = "swd"
+speed    = 4000          # kHz
+
+[flash]
+restore_unwritten = false
+halt_afterwards   = false
+
+[rtt]
+enabled  = true
+channels = [{ up = 0, name = "Terminal" }]
+
+# ---------------------------------------------------------------------------
+# [new_project] — files and settings scaffolded when creating a new project
+# ---------------------------------------------------------------------------
+[new_project]
+runner = "probe-rs run --chip STM32F411CEUx --protocol swd"
+
+[new_project.dependencies]
+cortex-m      = { version = "0.7.7", features = ["critical-section-single-core"] }
+cortex-m-rt   = "0.7.5"
+nb            = "1.1"
+panic-halt    = "1.0"
+rtt-target    = "0.6"
+stm32f4xx-hal = { version = "0.22", features = ["stm32f411", "rt"] }
+
+[[new_project.files]]
+path              = "rustdyno.toml"
+replace_if_exists = true
+content = """
+default="stm32f4.toml"
+"""
+
+[[new_project.files]]
+path    = "src/main.rs"
+content = """
+#![no_std]
+#![no_main]
+
+use cortex_m_rt::entry;
+use panic_halt as _;
+use rtt_target::{rtt_init_print, rprintln};
+
+#[entry]
+fn main() -> ! {
+    rtt_init_print!();
+    rprintln!(\"Hello from STM32F411!\");
+    loop {}
+}
+"""
+
+[[new_project.files]]
+path              = "Embed.toml"
+replace_if_exists = true
+content = """
+[default.general]
+chip = \"STM32F411CEUx\"
+
+[default.reset]
+halt_afterwards = false
+
+[default.rtt]
+enabled = true
+
+[default.gdb]
+enabled = false
+"""
+
+[[new_project.files]]
+path              = "memory.x"
+replace_if_exists = true
+content = """
+MEMORY {
+    FLASH : ORIGIN = 0x08000000, LENGTH = 512K
+    RAM   : ORIGIN = 0x20000000, LENGTH = 128K
+}
+"""
+
+[[new_project.files]]
+path              = ".cargo/config.toml"
+replace_if_exists = true
+content = """
+[target.thumbv7em-none-eabihf]
+runner    = \"probe-rs run --chip STM32F411CEUx --protocol {{PROTOCOL}}\"
+rustflags = [\"-C\", \"link-arg=-Tlink.x\", \"-C\", \"link-arg=-Tmemory.x\"]
+
+[build]
+target = \"thumbv7em-none-eabihf\"
+"""
