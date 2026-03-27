@@ -22,19 +22,20 @@ channels = [{ up = 0, name = "Terminal" }]
 runner = "probe-rs run --chip STM32F103C8Tx --protocol swd"
 
 dependencies = """
-cortex-m     = { version = "0.7.7", features = ["critical-section-single-core"] }
-cortex-m-rt  = "0.7.5"
-nb           = "1.1"
-panic-halt   = "1.0"
-rtt-target   = "0.6"
-stm32f1xx-hal = { version = "0.11", features = ["stm32f103", "rt"] }
+cortex-m = { version = "0.7.7", features = ["critical-section-single-core"] }
+cortex-m-rt = "0.7.5"
+nb = "1.1.0"
+panic-halt = "1.0.0"
+rtt-target = "0.6.2"
+stm32f1xx-hal = { version = "0.11.0", features = ["stm32f103"] }
+
 """
 
 [[new_project.files]]
 path              = "rustdyno.toml"
 replace_if_exists = true
 content = """
-default="stm32f1.toml"
+default="stm32f103C6.toml"
 """
 
 [[new_project.files]]
@@ -69,10 +70,10 @@ MEMORY {
 path              = ".cargo/config.toml"
 replace_if_exists = true
 content = """
-[target.thumbv7m-none-eabi]
-runner     = \"probe-rs run --chip STM32F103C8Tx --protocol {{PROTOCOL}}\"
-rustflags  = [\"-C\", \"link-arg=-Tlink.x\", \"-C\", \"link-arg=-Tmemory.x\"]
-
 [build]
 target = \"thumbv7m-none-eabi\"
+
+[target.thumbv7m-none-eabi]
+runner = \"probe-rs run --chip STM32F103C6\"
+rustflags = [\"-C\", \"link-arg=-Tlink.x\"]
 """

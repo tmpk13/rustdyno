@@ -1155,7 +1155,7 @@ function libRenderList(boards) {
         return;
     }
     const rows = boards.map(b => {
-        return `<div class="lib-item"><span class="lib-name" title="${esc(b.path)}">${esc(b.path.replace(/\.toml$/, ''))}</span>${libStateBtns(b)}</div>`;
+        return `<div class="lib-item"><span class="lib-name" title="${esc(b.path)}">${esc(b.name.replace(/\.toml$/, ''))}</span>${libStateBtns(b)}</div>`;
     }).join('');
     document.getElementById('libContent').innerHTML = `<div class="lib-list">${rows}</div>`;
 }
@@ -1165,7 +1165,7 @@ function libFilterBoards(query) {
     const q = query.trim();
     if (!q) { libRenderList(libAllBoards); return; }
     const scored = libAllBoards
-        .map(b => ({ b, score: fuzzyScore(q, b.path.replace(/\.toml$/, '')) }))
+        .map(b => ({ b, score: fuzzyScore(q, b.name.replace(/\.toml$/, '')) }))
         .filter(x => x.score > 0.25)
         .sort((a, z) => z.score - a.score);
     libRenderList(scored.map(x => x.b));

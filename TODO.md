@@ -219,13 +219,14 @@
 - [x] Add hex input for custom panel color
 
 - [ ] Make color choices evenly wrap, last two currently only ones on next line should be even rows
-- [ ] Add config in .rustdyno for default colors #8ecdc9
+- [ ] Add config in .rustdyno for default colors 
+
 - [ ] If can add button in .rustdyno/rustdyno.toml file to save as global rustdyno file. Or replace current with global. Also add replace rustdyno.toml button with global rustdyno.toml in pannel. Add backup in .rustdyno/ if replacing existing.
 
 - [ ] Add many animated checks
 
-- [ ] Fix input border on hover/click moving other elements (outline?)
-- [ ]
+- [x] Fix input border on hover/click moving other elements (outline?)
+- [ ] Remove the `boards/` prefix from the library
 
 
 # ?
