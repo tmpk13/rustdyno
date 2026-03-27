@@ -224,6 +224,10 @@
 
 - [ ] Add many animated checks
 
+- [ ] Fix input border on hover/click moving other elements (outline?)
+- [ ]
+
+
 # ?
 - [ ] integrate installer for board toolchains??
 

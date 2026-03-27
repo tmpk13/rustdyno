@@ -777,6 +777,13 @@ button.loading:not(.action-button)::after {
 
 button.done .btn-check {
     display: block;
+    animation: check-appear 0.35s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+@keyframes check-appear {
+    0%   { clip-path: inset(0 100% 0 0); opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    40%  { opacity: 1; }
+    100% { clip-path: inset(0 0 0 0);     opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
 

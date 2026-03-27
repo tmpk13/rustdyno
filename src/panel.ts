@@ -512,7 +512,7 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
                 uris: {
                     run: uri("imgs/run.svg"),
                     refresh: uri("imgs/refresh.svg"),
-                    check: uri("imgs/check.svg"),
+                    check: uri("imgs/check-wide.svg"),
                     drop: uri("imgs/drop.svg"),
                     eye: uri("imgs/eye.svg"),
                     eyeSlash: uri("imgs/eye-slash.svg"),
@@ -533,7 +533,7 @@ export class BoardPanelProvider implements vscode.WebviewViewProvider {
         webview.postMessage({
             command: "libSetup",
             uris: {
-                check: uri("imgs/check.svg"),
+                check: uri("imgs/check-wide.svg"),
                 down: uri("imgs/down.svg"),
                 refresh: uri("imgs/refresh.svg"),
             },
