@@ -476,7 +476,12 @@ function togglePalette() {
     const btn = document.getElementById('paletteToggleBtn');
     if (row) { row.style.display = _paletteOpen ? 'flex' : 'none'; }
     if (btn) { btn.style.opacity = _paletteOpen ? '1' : '0.5'; }
-    if (_paletteOpen) { _updatePaletteSwatches(); }
+    if (_paletteOpen) {
+        _updatePaletteSwatches();
+        const picker = document.getElementById('paletteColorPicker');
+        const hexIn = document.getElementById('paletteHexInput');
+        if (hexIn && picker) { hexIn.value = document.body.style.background ? picker.value : ''; }
+    }
 }
 
 function togglePaletteMode() {
@@ -497,6 +502,8 @@ function applyPanelBg(color) {
     });
     const picker = document.getElementById('paletteColorPicker');
     if (picker && picker.value !== color) { try { picker.value = color; } catch (_) {} }
+    const hexIn = document.getElementById('paletteHexInput');
+    if (hexIn && hexIn !== document.activeElement) { hexIn.value = color; }
     send('setPanelBg', color);
 }
 
@@ -508,8 +515,25 @@ function resetPanelBg() {
         swatch.classList.remove('palette-swatch-active');
     }
     document.querySelectorAll('.palette-swatch').forEach(el => el.classList.remove('palette-swatch-selected'));
+    const hexIn = document.getElementById('paletteHexInput');
+    if (hexIn) { hexIn.value = ''; }
     send('setPanelBg', null);
 }
+
+(function initHexInput() {
+    const hexIn = document.getElementById('paletteHexInput');
+    if (!hexIn) return;
+    hexIn.addEventListener('input', () => {
+        let v = hexIn.value.trim();
+        if (v && !v.startsWith('#')) { v = '#' + v; hexIn.value = v; }
+        if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+            applyPanelBg(v.toLowerCase());
+        }
+    });
+    hexIn.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { hexIn.blur(); }
+    });
+})();
 
 function safeHtml(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -1082,18 +1106,15 @@ function makeProbeNamingRow(probe, mapping) {
 
 // Tooltip
 (function initTooltips() {
-    const tip = document.createElement('div');
-    tip.className = 'btn-tooltip';
-    document.body.appendChild(tip);
+    const tip = Anim.getTip();
     let timer = null;
     document.addEventListener('mouseover', e => {
         const btn = e.target.closest('button[data-tip-cmd]');
         if (!btn) { return; }
         const rect = btn.getBoundingClientRect();
         tip.textContent = btn.dataset.tipLabel || '';
-        tip.style.left = rect.left + 'px';
-        tip.style.top = (rect.bottom + 6) + 'px';
-        Anim.tooltipIn(tip);
+        const origin = Anim.positionTip(tip, rect);
+        Anim.tooltipIn(tip, origin);
         timer = setTimeout(() => { tip.textContent = btn.dataset.tipCmd || ''; }, 2000);
     });
     document.addEventListener('mouseout', e => {
@@ -1112,9 +1133,9 @@ let LIB_REFRESH_URI = '';
 let libAllBoards = [];
 let libBoardIndex = {};
 
-function libCheckBtn(name) { return `<button class="lib-added" data-board="${esc(name)}" ondblclick="libRemoveBoard(this)" title="Double-click to remove from project"><img src="${LIB_CHECK_URI}"></button>`; }
-function libDownBtn(name, url) { return `<button class="lib-down" data-board="${esc(name)}" data-url="${esc(url)}" onclick="libDownloadBoard(this)" title="Add to project"><img src="${LIB_DOWN_URI}"></button>`; }
-function libUpdateBtn(name, url) { return `<button class="lib-update" data-board="${esc(name)}" data-url="${esc(url)}" onclick="libUpdateBoard(this)" title="Update to latest version"><img src="${LIB_REFRESH_URI}"></button>`; }
+function libCheckBtn(name) { return `<button class="lib-added" data-board="${esc(name)}" ondblclick="libRemoveBoard(this)" title="Double-click to remove"><img src="${LIB_CHECK_URI}"></button>`; }
+function libDownBtn(name, url) { return `<button class="lib-down" data-board="${esc(name)}" data-url="${esc(url)}" onclick="libDownloadBoard(this)" title="Add"><img src="${LIB_DOWN_URI}"></button>`; }
+function libUpdateBtn(name, url) { return `<button class="lib-update" data-board="${esc(name)}" data-url="${esc(url)}" onclick="libUpdateBoard(this)" title="Update"><img src="${LIB_REFRESH_URI}"></button>`; }
 function libStateBtns(b) {
     if (b.inWorkspace) {
         return `<span class="lib-btns">${libCheckBtn(b.name)}${b.hasUpdate ? libUpdateBtn(b.name, b.downloadUrl) : ''}</span>`;
@@ -1475,7 +1496,7 @@ function bmBuildSectionDom(key, def) {
     section.dataset.sectionKey = key;
     const header = document.createElement('div');
     header.className = 'bm-section-header bm-section-removable';
-    header.innerHTML = `${esc(def.label)} <button class="bm-remove-section" title="Remove section">&times;</button>`;
+    header.innerHTML = `${esc(def.label)} <button class="bm-remove-section" title="Remove">&times;</button>`;
     header.querySelector('.bm-remove-section').addEventListener('click', () => {
         section.remove();
         bmActiveSections.delete(key);
@@ -1644,9 +1665,9 @@ function bmAddChannel(container) {
     row.className = 'bm-channel-row';
     row.dataset.idx = idx;
     row.innerHTML =
-        `<input class="bm-input bm-channel-up" type="number" value="${idx}" placeholder="up" title="Channel index">` +
-        `<input class="bm-input bm-channel-name" type="text" value="Terminal" placeholder="name" title="Channel name">` +
-        `<button class="bm-remove-channel" onclick="bmRemoveChannel(this)" title="Remove channel">&times;</button>`;
+        `<input class="bm-input bm-channel-up" type="number" value="${idx}" placeholder="up" title="Index">` +
+        `<input class="bm-input bm-channel-name" type="text" value="Terminal" placeholder="name" title="Name">` +
+        `<button class="bm-remove-channel" onclick="bmRemoveChannel(this)" title="Remove">&times;</button>`;
     container.appendChild(row);
 }
 
@@ -2089,7 +2110,7 @@ window.addEventListener('message', e => {
             break;
         }
         case 'forceDownloadDone': {
-            const btn = document.querySelector('#tab-library [title="Force check and download all from GitHub"]');
+            const btn = document.querySelector('#tab-library [title="Re-download all"]');
             if (btn) { btn.disabled = false; }
             libLoad();
             break;

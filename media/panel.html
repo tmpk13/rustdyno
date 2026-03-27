@@ -33,10 +33,10 @@
         <div class="section-row">
           <span class="label">Files</span>
           <div class="file-section-btns">
-            <button class="icon-btn" id="hiddenToggle" onclick="toggleHidden()" title="Toggle hidden files">
+            <button class="icon-btn" id="hiddenToggle" onclick="toggleHidden()" title="Show/hide hidden">
               <img id="hiddenIcon" class="icon-svg">
             </button>
-            <button class="icon-btn" onclick="spinRefresh('refreshIcon'); send('refresh')" title="Refresh file list">
+            <button class="icon-btn" onclick="spinRefresh('refreshIcon'); send('refresh')" title="Refresh">
               <img id="refreshIcon" class="icon-svg">
             </button>
           </div>
@@ -52,7 +52,7 @@
       <div class="panel-section" data-section="actions">
         <div class="check-toggle-row">
           <button class="check-toggle-btn" id="checkToggleBtn" onclick="toggleCheck()"
-            title="Toggle cargo check &amp; clippy">
+            title="Toggle check &amp; clippy">
             <span class="check-toggle-icon">&#x276F;</span>
             <span>Check &amp; Clippy</span>
           </button>
@@ -117,12 +117,12 @@
                 <div class="drop-item drop-active" data-val="" onclick="pickPort('','auto')">-- auto --</div>
               </div>
             </div>
-            <button class="icon-btn" onclick="refreshPorts()" title="Refresh port list"><img
+            <button class="icon-btn" onclick="refreshPorts()" title="Refresh"><img
                 id="refreshPortIcon" class="icon-svg"></button>
           </div>
           <div id="probeRsInstallArea">
             <hr class="thick-divider">
-            <button id="probeRsInstallBtn" onclick="send('installProbeRs')" title="probe-rs not found — click to get install command">
+            <button id="probeRsInstallBtn" onclick="send('installProbeRs')" title="Install probe-rs">
               ⚠ probe-rs not found — Install
             </button>
           </div>
@@ -146,11 +146,11 @@
       <div id="editFooterRow">
         <span class="label">Edit layout</span>
         <div id="editHeader">
-          <button class="icon-btn palette-btn" id="paletteToggleBtn" onclick="togglePalette()" title="Panel background color"><span id="paletteBtnSwatch" class="palette-btn-swatch"></span></button>
-          <button class="icon-btn edit-reset-btn" id="resetLayoutBtn" onclick="resetLayout()" title="Reset layout to default">
+          <button class="icon-btn palette-btn" id="paletteToggleBtn" onclick="togglePalette()" title="Background color"><span id="paletteBtnSwatch" class="palette-btn-swatch"></span></button>
+          <button class="icon-btn edit-reset-btn" id="resetLayoutBtn" onclick="resetLayout()" title="Reset layout">
             <img id="editRefreshIcon" class="icon-svg">
           </button>
-          <button class="icon-btn edit-toggle-btn" id="editToggleBtn" onclick="toggleEditMode()" title="Edit panel layout">&#x270E;</button>
+          <button class="icon-btn edit-toggle-btn" id="editToggleBtn" onclick="toggleEditMode()" title="Edit layout">&#x270E;</button>
         </div>
       </div>
       <div id="paletteRow" style="display:none">
@@ -165,12 +165,17 @@
         </div>
         
         <div id="colorControls">
-          <label class="palette-picker-btn" title="Custom color">
-            <input type="color" id="paletteColorPicker" oninput="applyPanelBg(this.value)">
-            <span>&#x2026;</span>
-          </label>
-          <button class="palette-mode-btn" id="paletteModeBtn" onclick="togglePaletteMode()" title="Toggle light/dark palette"></button>
-          <button class="palette-reset-btn" onclick="resetPanelBg()" title="Reset background">&#x21BA;</button>
+          <div class="palette-hex-row">
+            <label class="palette-picker-btn" title="Custom">
+              <input type="color" id="paletteColorPicker" oninput="applyPanelBg(this.value)">
+              <span>&#x2026;</span>
+            </label>
+            <input type="text" id="paletteHexInput" class="palette-hex-input" placeholder="#000000" maxlength="7" spellcheck="false" autocomplete="off">
+          </div>
+          <div class="palette-hex-row">
+            <button class="palette-mode-btn" id="paletteModeBtn" onclick="togglePaletteMode()" title="Light/dark"></button>
+            <button class="palette-reset-btn" onclick="resetPanelBg()" title="Reset">&#x21BA;</button>
+          </div>
         </div>
       </div>
       
@@ -182,7 +187,7 @@
     <div class="section-row">
       <span class="label">Board Library</span>
       <div class="lib-header-btns">
-        <button class="icon-btn" onclick="libForceDownloadAll(this)" title="Force check and download all from GitHub">
+        <button class="icon-btn" onclick="libForceDownloadAll(this)" title="Re-download all">
           <img id="libDownIcon" class="icon-svg">
         </button>
         <button class="icon-btn" onclick="libLoad()" title="Refresh">
@@ -218,7 +223,7 @@
     </div>
     <div class="section-row">
       <span class="label">Board</span>
-      <button class="icon-btn" onclick="npRefreshBoards()" title="Refresh board list">
+      <button class="icon-btn" onclick="npRefreshBoards()" title="Refresh">
         <img id="npRefreshIcon" class="icon-svg">
       </button>
     </div>
@@ -313,14 +318,14 @@
   <template id="tpl-file-item">
     <div class="file-item" draggable="true">
       <span class="file-name"></span>
-      <button class="remove-btn" draggable="false" title="Hide file">&#x2715;</button>
+      <button class="remove-btn" draggable="false" title="Hide">&#x2715;</button>
     </div>
   </template>
 
   <template id="tpl-hidden-item">
     <div class="file-item hidden-item">
       <span class="file-name"></span>
-      <button class="remove-btn" title="Restore file">&#x2715;</button>
+      <button class="remove-btn" title="Restore">&#x2715;</button>
     </div>
   </template>
 

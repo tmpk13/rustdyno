@@ -1095,12 +1095,10 @@ body.edit-mode .panel-section > *:not(.edit-bar) {
     border-radius: 0.25rem;
     font-size: 0.6875rem;
     font-family: var(--rd-editor-font);
-    max-width: 90vw;
     word-break: break-all;
     pointer-events: none;
     z-index: 1000;
     display: none;
-    transform-origin: left top;
 }
 
 /* Icon wrapper inside a button label */
@@ -1911,4 +1909,28 @@ body.vscode-high-contrast .bm-combo-toggle {
     cursor: pointer;
     padding: 0;
     border: none;
+}
+
+.palette-hex-row {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.palette-hex-input {
+    width: 5.5rem;
+    font-family: monospace;
+    font-size: 0.8rem;
+    padding: 0.15rem 0.3rem;
+    border: 1.5px solid var(--rd-border, #555);
+    border-radius: 0.25rem;
+    background: var(--rd-input-bg, transparent);
+    color: var(--rd-fg);
+    height: 1.4rem;
+    box-sizing: border-box;
+}
+
+.palette-hex-input:focus {
+    border-color: var(--rd-focus);
+    outline: none;
 }

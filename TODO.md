@@ -210,7 +210,13 @@
         |[+]|[-]|
         ```
 
-- [ ] Test project creation
+- [ ] Add tests for project creation
+ - [ ] Test with existing and new projects
+ - [ ] Make sure backups for overwritten files are correct
+
+- [x] Make tooltips in html more concise to fit better, Don't touch command previews that expand on long hover
+
+- [x] Add hex input for custom panel color
 
 # ?
 - [ ] integrate installer for board toolchains??
