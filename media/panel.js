@@ -450,24 +450,94 @@ const PALETTE_LIGHT = [
 
 let _paletteOpen = false;
 let _paletteDark = null; // null = auto-detect
+let _paletteObserver = null;
+let _paletteLastCount = -1;
 
 function _vscodeIsDark() {
     const kind = document.body.getAttribute('data-vscode-theme-kind');
-    // default to light if unset
     return kind === 'vscode-dark' || kind === 'vscode-high-contrast';
 }
 
-function _updatePaletteSwatches() {
+function _hexToRgb(hex) {
+    const n = parseInt(hex.slice(1), 16);
+    return [(n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff];
+}
+
+function _rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map(c => Math.round(c).toString(16).padStart(2, '0')).join('');
+}
+
+function _lerpColor(hex1, hex2, t) {
+    const [r1, g1, b1] = _hexToRgb(hex1);
+    const [r2, g2, b2] = _hexToRgb(hex2);
+    return _rgbToHex(r1 + (r2 - r1) * t, g1 + (g2 - g1) * t, b1 + (b2 - b1) * t);
+}
+
+function _buildExpandedPalette(base, count) {
+    if (count <= base.length) return base.slice(0, count);
+    const segments = base.length - 1;
+    const extra = count - base.length;
+    const perSeg = new Array(segments).fill(Math.floor(extra / segments));
+    for (let i = 0; i < extra % segments; i++) perSeg[i]++;
+    const result = [];
+    for (let s = 0; s < segments; s++) {
+        result.push(base[s]);
+        const steps = perSeg[s];
+        for (let j = 1; j <= steps; j++) {
+            const t = j / (steps + 1);
+            result.push({ color: _lerpColor(base[s].color, base[s + 1].color, t), title: '' });
+        }
+    }
+    result.push(base[base.length - 1]);
+    return result;
+}
+
+function _updatePaletteSwatches(force) {
+    const container = document.getElementById('paletteColors');
+    if (!container) return;
     const isDark = _paletteDark !== null ? _paletteDark : _vscodeIsDark();
-    const palette = isDark ? PALETTE_DARK : PALETTE_LIGHT;
-    document.querySelectorAll('.palette-swatch').forEach((el, i) => {
-        if (!palette[i]) { return; }
-        el.style.background = palette[i].color;
-        el.title = palette[i].title;
-        el.onclick = () => applyPanelBg(palette[i].color);
-    });
+    const base = isDark ? PALETTE_DARK : PALETTE_LIGHT;
+
+    const style = getComputedStyle(container);
+    const gap = parseFloat(style.gap) || 0;
+    const containerW = container.clientWidth;
+    const remPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 13;
+    const swatchW = 1.4 * remPx;
+    const count = Math.max(base.length, Math.floor((containerW + gap) / (swatchW + gap)));
+
+    if (!force && count === _paletteLastCount) return;
+    _paletteLastCount = count;
+
+    const palette = _buildExpandedPalette(base, count);
+
+    container.innerHTML = '';
+    const currentBg = document.body.style.background || document.body.style.backgroundColor || '';
+    for (const entry of palette) {
+        const btn = document.createElement('button');
+        btn.className = 'palette-swatch';
+        btn.style.background = entry.color;
+        btn.title = entry.title;
+        btn.onclick = () => applyPanelBg(entry.color);
+        if (currentBg && (currentBg === entry.color || document.body.style.backgroundColor === entry.color)) {
+            btn.classList.add('palette-swatch-selected');
+        }
+        container.appendChild(btn);
+    }
+
     const modeBtn = document.getElementById('paletteModeBtn');
     if (modeBtn) { modeBtn.textContent = isDark ? '\u263D' : '\u2600'; }
+}
+
+function _startPaletteObserver() {
+    if (_paletteObserver) return;
+    const container = document.getElementById('paletteColors');
+    if (!container) return;
+    _paletteObserver = new ResizeObserver(() => _updatePaletteSwatches());
+    _paletteObserver.observe(container);
+}
+
+function _stopPaletteObserver() {
+    if (_paletteObserver) { _paletteObserver.disconnect(); _paletteObserver = null; }
 }
 
 function togglePalette() {
@@ -478,16 +548,19 @@ function togglePalette() {
     if (btn) { btn.style.opacity = _paletteOpen ? '1' : '0.5'; }
     if (_paletteOpen) {
         _updatePaletteSwatches();
+        _startPaletteObserver();
         const picker = document.getElementById('paletteColorPicker');
         const hexIn = document.getElementById('paletteHexInput');
         if (hexIn && picker) { hexIn.value = document.body.style.background ? picker.value : ''; }
+    } else {
+        _stopPaletteObserver();
     }
 }
 
 function togglePaletteMode() {
     const cur = _paletteDark !== null ? _paletteDark : _vscodeIsDark();
     _paletteDark = !cur;
-    _updatePaletteSwatches();
+    _updatePaletteSwatches(true);
 }
 
 function applyPanelBg(color) {
