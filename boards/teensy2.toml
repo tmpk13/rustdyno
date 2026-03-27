@@ -15,10 +15,11 @@ enabled = false          # No RTT on AVR; use USB serial (CDC) for output
 [new_project]
 runner = "teensy_loader_cli --mcu=TEENSY2 -w -v"
 
-[new_project.dependencies]
+dependencies = """
 avr-device  = { version = "0.5", features = ["atmega32u4"] }
 panic-halt  = "1.0"
 ufmt        = "0.2"
+"""
 
 [[new_project.files]]
 path              = "rustdyno.toml"

@@ -18,6 +18,7 @@ export interface ApplyResult {
     generated: string[];
     replaced: string[];
     skipped: string[];
+    appended: string[];
 }
 
 export async function newProject(): Promise<void> {
@@ -106,11 +107,22 @@ export function applyBoardToProject(extensionPath: string): ApplyResult | undefi
     const protocol = board.probe?.protocol;
     const boardFile = getActiveBoardFile();
     const np = board.new_project;
-    const result: ApplyResult = { generated: [], replaced: [], skipped: [] };
+    const result: ApplyResult = { generated: [], replaced: [], skipped: [], appended: [] };
 
     for (const f of np.files ?? []) {
         const dest = path.join(wsRoot, f.path);
         const exists = fs.existsSync(dest);
+
+        let content = f.content;
+        if (protocol) { content = content.replaceAll("{{PROTOCOL}}", protocol); }
+        if (boardFile) { content = content.replaceAll("{{BOARD_FILE}}", boardFile); }
+
+        if (exists && f.append_if_exists) {
+            const existing = fs.readFileSync(dest, "utf-8");
+            fs.writeFileSync(dest, existing.trimEnd() + "\n" + content.trim() + "\n", "utf-8");
+            result.appended.push(f.path);
+            continue;
+        }
 
         if (exists && !f.replace_if_exists) {
             result.skipped.push(f.path);
@@ -129,9 +141,6 @@ export function applyBoardToProject(extensionPath: string): ApplyResult | undefi
 
         // Write new content
         fs.mkdirSync(path.dirname(dest), { recursive: true });
-        let content = f.content;
-        if (protocol) { content = content.replaceAll("{{PROTOCOL}}", protocol); }
-        if (boardFile) { content = content.replaceAll("{{BOARD_FILE}}", boardFile); }
         fs.writeFileSync(dest, content, "utf-8");
     }
 
@@ -157,6 +166,10 @@ export function showApplyResult(result: ApplyResult, boardName: string): void {
         ch.appendLine("\nGenerated (new files):");
         for (const f of result.generated) { ch.appendLine(`  + ${f}`); }
     }
+    if (result.appended.length) {
+        ch.appendLine("\nAppended (content added to existing file):");
+        for (const f of result.appended) { ch.appendLine(`  >> ${f}`); }
+    }
     if (result.replaced.length) {
         ch.appendLine("\nReplaced (backed up to .rustdyno/backup/):");
         for (const f of result.replaced) { ch.appendLine(`  ~ ${f}`); }
@@ -168,6 +181,7 @@ export function showApplyResult(result: ApplyResult, boardName: string): void {
 
     const parts: string[] = [];
     if (result.generated.length) { parts.push(`${result.generated.length} generated`); }
+    if (result.appended.length) { parts.push(`${result.appended.length} appended`); }
     if (result.replaced.length) { parts.push(`${result.replaced.length} replaced`); }
     if (result.skipped.length) { parts.push(`${result.skipped.length} skipped`); }
     const summary = `Board "${boardName}" applied: ${parts.join(", ")}.`;
@@ -197,7 +211,12 @@ export function writeProjectFiles(projectDir: string, files: NewProjectFile[], p
         let content = f.content;
         if (protocol) { content = content.replaceAll("{{PROTOCOL}}", protocol); }
         if (boardFile) { content = content.replaceAll("{{BOARD_FILE}}", boardFile); }
-        fs.writeFileSync(dest, content, "utf-8");
+        if (f.append_if_exists && fs.existsSync(dest)) {
+            const existing = fs.readFileSync(dest, "utf-8");
+            fs.writeFileSync(dest, existing.trimEnd() + "\n" + content.trim() + "\n", "utf-8");
+        } else {
+            fs.writeFileSync(dest, content, "utf-8");
+        }
     }
 }
 

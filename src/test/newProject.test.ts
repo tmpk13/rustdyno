@@ -113,6 +113,48 @@ test("writeProjectFiles: handles esp32c3 board files", () => {
     }
 });
 
+// --- writeProjectFiles: append_if_exists ---
+
+test("writeProjectFiles: append_if_exists appends to existing file", () => {
+    const dest = path.join(tmpDir, "Cargo.toml");
+    fs.writeFileSync(dest, '[package]\nname = "test"\n');
+    const files = [{ path: "Cargo.toml", content: '\n[dependencies]\nfoo = "1"\n', append_if_exists: true }];
+    writeProjectFiles(tmpDir, files as never);
+    const content = fs.readFileSync(dest, "utf-8");
+    expect(content).toContain('name = "test"');
+    expect(content).toContain('[dependencies]');
+    expect(content).toContain('foo = "1"');
+});
+
+test("writeProjectFiles: append_if_exists creates file if not exists", () => {
+    const files = [{ path: "new-file.toml", content: '[section]\nkey = "val"\n', append_if_exists: true }];
+    writeProjectFiles(tmpDir, files as never);
+    const content = fs.readFileSync(path.join(tmpDir, "new-file.toml"), "utf-8");
+    expect(content).toContain('key = "val"');
+});
+
+test("writeProjectFiles: append_if_exists works with placeholders", () => {
+    const dest = path.join(tmpDir, "config.toml");
+    fs.writeFileSync(dest, '[build]\ntarget = "thumbv7"\n');
+    const files = [{ path: "config.toml", content: 'runner = "probe-rs --protocol {{PROTOCOL}}"', append_if_exists: true }];
+    writeProjectFiles(tmpDir, files as never, "swd");
+    const content = fs.readFileSync(dest, "utf-8");
+    expect(content).toContain('target = "thumbv7"');
+    expect(content).toContain("--protocol swd");
+});
+
+test("writeProjectFiles: append_if_exists appends to file created by prior entry", () => {
+    const files = [
+        { path: "Cargo.toml", content: '[package]\nname = "test"\n' },
+        { path: "Cargo.toml", content: '\n[dependencies]\nbar = "2"\n', append_if_exists: true },
+    ];
+    writeProjectFiles(tmpDir, files as never);
+    const content = fs.readFileSync(path.join(tmpDir, "Cargo.toml"), "utf-8");
+    expect(content).toContain('name = "test"');
+    expect(content).toContain('[dependencies]');
+    expect(content).toContain('bar = "2"');
+});
+
 // --- addDependencies ---
 
 test("addDependencies: appends deps to existing Cargo.toml", () => {

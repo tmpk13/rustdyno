@@ -19,10 +19,12 @@ function loadHtml(ext: vscode.ExtensionContext, webview: vscode.Webview, htmlFil
     const mediaPath = vscode.Uri.joinPath(ext.extensionUri, "media");
     const cssUri = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, "panel.css"));
     const jsUri = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, jsFile));
+    const animUri = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, "animations.js"));
     const dropUri = webview.asWebviewUri(vscode.Uri.joinPath(ext.extensionUri, "imgs", "drop.svg"));
     const htmlPath = path.join(ext.extensionUri.fsPath, "media", htmlFile);
     return fs.readFileSync(htmlPath, "utf8")
         .replace("{{CSS_URI}}", cssUri.toString())
+        .replace("{{ANIM_URI}}", animUri.toString())
         .replace("{{JS_URI}}", jsUri.toString())
         .replace(/\{\{DROP_URI\}\}/g, dropUri.toString());
 }

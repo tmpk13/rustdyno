@@ -2,7 +2,7 @@
 - [ ] 
  -->
 
-- [ ] Add port selection
+- [x] Add port selection
 - [ ] Bind loading on panel buttons to something
 - [x] Add run commands option for toml
 - [x] Make the layout not wobble on hover
@@ -171,6 +171,46 @@
 
 - [ ] Attempt to auto detect board and ask to use/download (non intrusive (Don't focus))
         from the long/short name - use closest as default if not set in rustdyno
+
+- [ ] Add esp-generate support
+
+- [?] Add append if exists flag for file generation. Sections may be marked append
+ - [x] Swap dependencies to a string
+ -  ```
+    append_if_exists = false
+    content = """
+    [new_project]
+    runner = "probe-rs run --chip STM32F103C8Tx --protocol swd"
+    """
+    append_if_exists = true
+    content = """
+    [new_project.dependencies]
+    cortex-m     = { version = "0.7.7", features = ["critical-section-single-core"] }
+    cortex-m-rt  = "0.7.5"
+    nb           = "1.1"
+    panic-halt   = "1.0"
+    rtt-target   = "0.6"
+    stm32f1xx-hal = { version = "0.11", features = ["stm32f103", "rt"] }
+    """
+    ```
+
+- Add animations
+ - [ ] Tooltips expand left to right, snap out
+
+- [ ] Add repo list UI for adding repos
+        Clickable list. Double click or click edit icon to edit.
+        Seperate boxes for name/url
+        ```
+         ____________________________________
+        |Name|URL                            |
+        |main | repo|github.com/tmpk13/boards|
+        |                                    |
+        |                                    |
+         ------------------------------------
+        |[+]|[-]|
+        ```
+
+- [ ] Test project creation
 
 # ?
 - [ ] integrate installer for board toolchains??

@@ -8,6 +8,7 @@ export interface NewProjectFile {
   path: string;
   content: string;
   replace_if_exists?: boolean;
+  append_if_exists?: boolean;
 }
 
 export interface GenerateCommand {

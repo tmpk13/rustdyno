@@ -35,14 +35,16 @@ command = "cargo generate esp-rs/esp-idf-template cargo --name {{PROJECT_NAME}}"
 label   = "esp-generate"
 command = "esp-generate --chip esp32c3 -o stack-smashing-protection -o esp-backtrace -o vscode {{PROJECT_NAME}}"
 
-[new_project.dependencies]
+dependencies = """
 anyhow      = "1"
 esp-idf-hal = "0.46"
 esp-idf-svc = { version = "0.52", features = ["binstart"] }
 log         = "0.4"
+"""
 
-[new_project.build-dependencies]
+"build-dependencies" = """
 embuild = "0.33"
+"""
 
 [[new_project.files]]
 path              = "rustdyno.toml"

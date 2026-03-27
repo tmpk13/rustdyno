@@ -15,11 +15,12 @@ enabled = false          # No RTT on AVR; use serial (UART) for output
 [new_project]
 runner = "ravedude nano -cb 57600"
 
-[new_project.dependencies]
+dependencies = """
 avr-device    = { version = "0.5", features = ["atmega328p"] }
 arduino-hal   = { git = "https://github.com/Rahix/avr-hal", features = ["arduino-nano"] }
 panic-halt    = "1.0"
 ufmt          = "0.2"
+"""
 
 [[new_project.files]]
 path              = "rustdyno.toml"

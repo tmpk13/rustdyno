@@ -31,13 +31,14 @@ channels = [{ up = 0, name = "Terminal" }]
 [new_project]
 runner = "probe-rs run --chip STM32F411CEUx --protocol swd"
 
-[new_project.dependencies]
+dependencies = """
 cortex-m      = { version = "0.7.7", features = ["critical-section-single-core"] }
 cortex-m-rt   = "0.7.5"
 nb            = "1.1"
 panic-halt    = "1.0"
 rtt-target    = "0.6"
 stm32f4xx-hal = { version = "0.22", features = ["stm32f411", "rt"] }
+"""
 
 [[new_project.files]]
 path              = "rustdyno.toml"

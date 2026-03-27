@@ -26,11 +26,12 @@ channels = [{ up = 0, name = "Terminal" }]
 [new_project]
 runner = "teensy_loader_cli --mcu=TEENSY32 -w -v"
 
-[new_project.dependencies]
+dependencies = """
 cortex-m    = { version = "0.7.7", features = ["inline-asm", "critical-section-single-core"] }
 cortex-m-rt = "0.7.5"
 panic-halt  = "1.0"
 rtt-target  = "0.6"
+"""
 
 [[new_project.files]]
 path              = "rustdyno.toml"

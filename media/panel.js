@@ -1091,15 +1091,15 @@ function makeProbeNamingRow(probe, mapping) {
         if (!btn) { return; }
         const rect = btn.getBoundingClientRect();
         tip.textContent = btn.dataset.tipLabel || '';
-        tip.style.display = 'block';
         tip.style.left = rect.left + 'px';
         tip.style.top = (rect.bottom + 6) + 'px';
+        Anim.tooltipIn(tip);
         timer = setTimeout(() => { tip.textContent = btn.dataset.tipCmd || ''; }, 2000);
     });
     document.addEventListener('mouseout', e => {
         if (!e.target.closest('button[data-tip-cmd]')) { return; }
         clearTimeout(timer);
-        tip.style.display = 'none';
+        Anim.tooltipOut(tip);
     });
 })();
 

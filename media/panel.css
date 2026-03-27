@@ -1100,19 +1100,7 @@ body.edit-mode .panel-section > *:not(.edit-bar) {
     pointer-events: none;
     z-index: 1000;
     display: none;
-    transform-origin: top center;
-    animation: tooltip-in 0.15s ease forwards;
-}
-
-@keyframes tooltip-in {
-    from {
-        opacity: 0;
-        transform: scale(0.93) translateY(-4px);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
+    transform-origin: left top;
 }
 
 /* Icon wrapper inside a button label */

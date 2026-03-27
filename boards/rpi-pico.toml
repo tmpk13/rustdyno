@@ -31,13 +31,14 @@ channels = [{ up = 0, name = "Terminal" }]
 [new_project]
 runner = "probe-rs run --chip RP2040 --protocol swd"
 
-[new_project.dependencies]
+dependencies = """
 cortex-m         = { version = "0.7.7", features = ["inline-asm"] }
 cortex-m-rt      = "0.7.5"
 panic-halt       = "1.0"
 rtt-target       = "0.6"
 rp2040-hal       = { version = "0.10", features = ["rt"] }
 rp2040-boot2     = "0.3"
+"""
 
 [[new_project.files]]
 path              = "rustdyno.toml"

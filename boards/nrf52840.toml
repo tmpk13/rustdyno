@@ -21,12 +21,13 @@ channels = [{ up = 0, name = "Terminal" }]
 [new_project]
 runner = "probe-rs run --chip nRF52840_xxAA --protocol swd"
 
-[new_project.dependencies]
+dependencies = """
 cortex-m         = { version = "0.7.7", features = ["inline-asm", "critical-section-single-core"] }
 cortex-m-rt      = "0.7.5"
 panic-halt       = "1.0"
 rtt-target       = "0.6"
 nrf52840-hal     = { version = "0.16", features = ["rt"] }
+"""
 
 [[new_project.files]]
 path              = "rustdyno.toml"
