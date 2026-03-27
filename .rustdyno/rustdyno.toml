@@ -1,2 +1,7 @@
 default = ""
 target = "src/main.rs"
+
+# default: true (set false for horizontal tabs)
+# tabs_vertical = true              
+# default: 5 (set 0 to disable auto-collapse)
+# tabs_auto_collapse_seconds = 5

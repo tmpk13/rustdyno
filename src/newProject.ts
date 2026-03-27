@@ -3,7 +3,8 @@ import * as fs from "fs";
 import * as path from "path";
 import { exec } from "child_process";
 
-import { getActiveBoard, getActiveBoardFile, getBoardDir, setBoardElf, setupBoardDir, NewProjectConfig, NewProjectFile } from "./boardConfig";
+import { getActiveBoard, getActiveBoardFile, setBoardElf, setupBoardDir, NewProjectConfig, NewProjectFile } from "./boardConfig";
+import { getBoardDir } from "./projectConfig";
 
 let outputChannel: vscode.OutputChannel | undefined;
 

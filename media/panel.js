@@ -69,9 +69,13 @@ let _examplesLoaded = false;
 let _libLoaded = false;
 
 function switchTab(tabId) {
+    const btn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+    if (btn && btn.classList.contains('active') && !document.getElementById('overflowTray').classList.contains('open')) {
+        toggleOverflow();
+        return;
+    }
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    const btn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
     if (btn) btn.classList.add('active');
 
     if (tabId === 'dynamic' && currentDynamic) {
@@ -238,12 +242,7 @@ function toggleOverflow(e) {
     if (e) e.stopPropagation();
     const tray = document.getElementById('overflowTray');
     tray.classList.toggle('open');
-    if (tray.classList.contains('open')) {
-        clearTimeout(_overflowTimer);
-        _startOverflowTimer();
-    } else {
-        clearTimeout(_overflowTimer);
-    }
+    clearTimeout(_overflowTimer);
 }
 
 function closeOverflow() {
@@ -258,10 +257,8 @@ function _startOverflowTimer() {
     }
 }
 
-document.getElementById('overflowTray').addEventListener('mouseenter', () => clearTimeout(_overflowTimer));
-document.getElementById('overflowTray').addEventListener('mouseleave', _startOverflowTimer);
-document.querySelector('.tab-overflow-btn').addEventListener('mouseenter', () => clearTimeout(_overflowTimer));
-document.querySelector('.tab-overflow-btn').addEventListener('mouseleave', () => {
+document.getElementById('tabBar').addEventListener('mouseenter', () => clearTimeout(_overflowTimer));
+document.getElementById('tabBar').addEventListener('mouseleave', () => {
     if (document.getElementById('overflowTray').classList.contains('open')) {
         _startOverflowTimer();
     }

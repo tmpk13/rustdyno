@@ -2,7 +2,8 @@ import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
 import { exec } from "child_process";
-import { autoSelectBoard, getActiveBoard, getActiveBoardFile, getBoardDir, getEffectivePort, getLayout, getPortOverride, getDefaultTargetFile, listBoards, PanelLayout, selectBoardByFile, setDefaultBoardFile, setDefaultTargetFile, setLayout, setPortOverride, getProbeMap, setProbeMapping, clearProbeBoard, setupBoardDir, ToolInstallConfig, getPanelBg, setPanelBg, getCargoTargets, getTabConfig, setTabConfig, TabConfig } from "./boardConfig";
+import { autoSelectBoard, getActiveBoard, getActiveBoardFile, getEffectivePort, getLayout, getPortOverride, listBoards, PanelLayout, selectBoardByFile, setLayout, setPortOverride, setupBoardDir, ToolInstallConfig } from "./boardConfig";
+import { getBoardDir, getDefaultTargetFile, setDefaultBoardFile, setDefaultTargetFile, getProbeMap, setProbeMapping, clearProbeBoard, getPanelBg, setPanelBg, getCargoTargets, getTabConfig, setTabConfig, TabConfig } from "./projectConfig";
 
 const DEFAULT_ACTIONS: Record<string, { label: string; color: string }> = {
     build: { label: "Build", color: "#1e7ec8" },

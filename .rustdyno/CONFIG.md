@@ -5,6 +5,10 @@ state file `rustdyno.toml` is also in this folder but is managed automatically.
 
 ---
 
+tabs_vertical = true              # default: true (set false for horizontal tabs)
+tabs_auto_collapse_seconds = 5    # default: 5 (set 0 to disable auto-collapse)
+
+
 ## `[board]`
 
 Core identity of the target chip and Rust compile target.
