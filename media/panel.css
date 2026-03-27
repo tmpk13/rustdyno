@@ -29,12 +29,12 @@
     /* Dropdowns / selects */
     --rd-drop-bg:      var(--vscode-dropdown-background);
     --rd-drop-fg:      var(--vscode-dropdown-foreground);
-    --rd-drop-border:  var(--vscode-dropdown-border);
+    --rd-drop-border:  rgba(100, 120, 140, 0.45);
 
     /* Inputs */
     --rd-input-bg:     var(--vscode-input-background);
     --rd-input-fg:     var(--vscode-input-foreground);
-    --rd-input-border: var(--vscode-input-border, var(--vscode-dropdown-border));
+    --rd-input-border: rgba(100, 120, 140, 0.45);
 
     /* List selection */
     --rd-active-bg:    var(--vscode-list-activeSelectionBackground);
@@ -190,20 +190,54 @@
     flex: 1;
 }
 
-.examples-checkbox {
+.examples-check-btn {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.35rem;
     white-space: nowrap;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     opacity: 0.8;
     cursor: pointer;
+    background: none;
+    border: none;
+    color: var(--rd-fg);
+    padding: 0.15rem 0.35rem;
+    min-height: unset;
+    width: auto;
+    margin: 0;
+    border-radius: 0.25rem;
+    transition: opacity 0.15s;
+}
+.examples-check-btn:hover { opacity: 1; }
+
+.examples-check-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.15rem;
+    height: 1.15rem;
+    border: 1.5px solid var(--rd-input-border);
+    border-radius: 0.2rem;
+    background: var(--rd-input-bg);
+    transition: border-color 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
+                background 0.15s ease;
+}
+.examples-check-btn.checked .examples-check-box {
+    border-color: var(--rd-focus);
+    background: var(--rd-focus);
 }
 
-.examples-checkbox input[type="checkbox"] {
-    width: auto;
-    min-height: unset;
-    margin: 0;
+.examples-check-icon {
+    width: 0.75rem;
+    height: 0.75rem;
+    opacity: 0;
+    filter: brightness(0) invert(1);
+    transition: opacity 0.12s ease, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform: scale(0.5);
+}
+.examples-check-btn.checked .examples-check-icon {
+    opacity: 1;
+    transform: scale(1);
 }
 
 .example-item {
@@ -354,7 +388,7 @@ body {
     margin: 0;
     flex-shrink: 0;
     cursor: default;
-    border: 1px solid var(--rd-drop-border);
+    border: 1.5px solid var(--rd-drop-border);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -396,7 +430,7 @@ body {
 }
 
 .lib-list {
-    border: 1px solid var(--rd-drop-border);
+    border: 1.5px solid var(--rd-drop-border);
     border-radius: 0.25rem;
     margin-bottom: 0.5rem;
     max-height: 18.75rem;
@@ -432,17 +466,17 @@ body {
     font-size: 0.75rem;
     background: var(--rd-input-bg);
     color: var(--rd-input-fg);
-    border: 1px solid rgba(128, 128, 128, 0.35);
+    border: 1.5px solid var(--rd-input-border);
     border-radius: 0.1875rem;
     outline: none;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.1);
-    transition: border-color 0.12s ease;
+    transition: border-color 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), border-width 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 #libSearch:hover,
 #np-search:hover,
 #exSearch:hover {
-    border-color: rgba(255, 255, 255, 0.75) !important;
+    border: 2px solid rgba(255, 255, 255, 0.75) !important;
     outline: none !important;
 }
 
@@ -486,7 +520,7 @@ button:hover {
     padding: 0.375rem;
     background: var(--rd-drop-bg);
     color: var(--rd-drop-fg);
-    border: 1px solid var(--rd-drop-border);
+    border: 1.5px solid var(--rd-drop-border);
     border-radius: 0.25rem;
     cursor: pointer;
     user-select: none;
@@ -566,13 +600,13 @@ button:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(128, 128, 128, 0.35);
+    border: 1.5px solid var(--rd-input-border);
     background: transparent;
-    transition: border-color 0.12s ease;
+    transition: border-color 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), border-width 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .icon-btn:hover {
-    border-color: rgba(255, 255, 255, 0.75) !important;
+    border: 2px solid rgba(255, 255, 255, 0.75) !important;
     outline: none !important;
 }
 
@@ -592,7 +626,7 @@ button:hover {
     max-height: 11.25rem;
     overflow-y: auto;
     margin-bottom: 0.5rem;
-    border: 1px solid var(--rd-drop-border);
+    border: 1.5px solid var(--rd-drop-border);
     border-radius: 0.25rem;
 }
 
@@ -758,7 +792,7 @@ button.done .btn-check {
     max-height: 10rem;
     overflow-y: auto;
     background: var(--rd-drop-bg);
-    border: 1px solid var(--rd-drop-border);
+    border: 1.5px solid var(--rd-drop-border);
     border-radius: 0.25rem;
 }
 
@@ -1033,16 +1067,16 @@ body.edit-mode .panel-section > *:not(.edit-bar) {
     font-size: 0.75rem;
     background: var(--rd-input-bg);
     color: var(--rd-input-fg);
-    border: 1px solid rgba(128, 128, 128, 0.35);
+    border: 1.5px solid var(--rd-input-border);
     border-radius: 0.1875rem;
     outline: none;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.1);
-    transition: border-color 0.12s ease;
+    transition: border-color 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), border-width 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 #np-name:hover,
 #np-location:hover {
-    border-color: rgba(255, 255, 255, 0.75) !important;
+    border: 2px solid rgba(255, 255, 255, 0.75) !important;
     outline: none !important;
 }
 
@@ -1169,18 +1203,18 @@ button.done .btn-icon {
     min-width: 0;
     background: var(--rd-input-bg);
     color: var(--rd-input-fg);
-    border: 1px solid rgba(128, 128, 128, 0.35);
+    border: 1.5px solid var(--rd-input-border);
     padding: 2px 5px;
     font-size: 0.75rem;
     font-family: var(--rd-font);
     border-radius: 2px;
     height: 1.5rem;
     box-sizing: border-box;
-    transition: border-color 0.12s ease;
+    transition: border-color 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), border-width 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .probe-name-input:hover {
-    border-color: rgba(255, 255, 255, 0.75) !important;
+    border: 2px solid rgba(255, 255, 255, 0.75) !important;
     outline: none !important;
 }
 
@@ -1444,7 +1478,7 @@ button.done .btn-icon {
 
 .bm-section {
     margin-bottom: 0.5rem;
-    border: 1px solid var(--rd-drop-border);
+    border: 1.5px solid var(--rd-drop-border);
     border-radius: 0.25rem;
     overflow: hidden;
 }
@@ -1508,15 +1542,15 @@ button.done .btn-icon {
     font-size: 0.75rem;
     background: var(--rd-input-bg);
     color: var(--rd-input-fg);
-    border: 1px solid rgba(128, 128, 128, 0.35);
+    border: 1.5px solid var(--rd-input-border);
     border-radius: 0.1875rem;
     outline: none;
     font-family: var(--rd-font);
-    transition: border-color 0.12s ease;
+    transition: border-color 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), border-width 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .bm-input:hover {
-    border-color: rgba(255, 255, 255, 0.75) !important;
+    border: 2px solid rgba(255, 255, 255, 0.75) !important;
 }
 
 .bm-input:focus {
@@ -1537,7 +1571,7 @@ button.done .btn-icon {
     font-size: 0.75rem;
     background: var(--rd-drop-bg);
     color: var(--rd-drop-fg);
-    border: 1px solid var(--rd-drop-border);
+    border: 1.5px solid var(--rd-drop-border);
     border-radius: 0.1875rem;
     font-family: var(--rd-font);
 }
@@ -1568,7 +1602,7 @@ button.done .btn-icon {
     max-height: 10rem;
     overflow-y: auto;
     background: var(--rd-drop-bg);
-    border: 1px solid var(--rd-drop-border);
+    border: 1.5px solid var(--rd-drop-border);
     border-radius: 0.25rem;
     margin-top: 2px;
 }
@@ -1639,7 +1673,7 @@ button.done .btn-icon {
 .bm-preview-btn {
     background: transparent;
     color: var(--rd-fg);
-    border: 1px solid rgba(128, 128, 128, 0.35);
+    border: 1.5px solid var(--rd-input-border);
     font-size: 0.75rem;
     min-height: 1.75rem;
     opacity: 0.7;
@@ -1653,7 +1687,7 @@ button.done .btn-icon {
     font-family: var(--rd-editor-font);
     font-size: 0.7rem;
     background: var(--rd-input-bg);
-    border: 1px solid var(--rd-drop-border);
+    border: 1.5px solid var(--rd-drop-border);
     border-radius: 0.25rem;
     padding: 0.5rem;
     overflow-x: auto;
@@ -1745,7 +1779,7 @@ body.vscode-high-contrast .bm-combo-toggle {
     right: 0;
     z-index: 100;
     background: var(--rd-drop-bg);
-    border: 1px solid var(--rd-drop-border);
+    border: 1.5px solid var(--rd-drop-border);
     border-radius: 0.25rem;
     margin-top: 2px;
     overflow: hidden;

@@ -210,7 +210,10 @@
     </div>
     <div class="examples-filter-row">
       <input id="exSearch" type="text" placeholder="Search examples&#8230;" oninput="exFilterExamples(this.value)" autocomplete="off" spellcheck="false">
-      <label class="examples-checkbox"><input type="checkbox" id="exShowAll" onchange="exToggleShowAll()"> All</label>
+      <button class="examples-check-btn" id="exShowAll" onclick="exToggleShowAll()" title="Show all boards">
+        <span class="examples-check-box"><img class="examples-check-icon" id="exShowAllIcon" src=""></span>
+        <span>All</span>
+      </button>
     </div>
     <div id="exContent"><div class="lib-status">Loading&#8230;</div></div>
   </div>

@@ -430,22 +430,22 @@ function onSectionDrop(e) {
 
 // ── Panel Background Palette ──
 const PALETTE_DARK = [
-    { color: '#1e1e3a', title: 'Midnight Blue' },
-    { color: '#1a3a1a', title: 'Forest Green' },
-    { color: '#3a1a1a', title: 'Dark Red' },
-    { color: '#3a2e1a', title: 'Warm Amber' },
-    { color: '#2a1a3a', title: 'Dark Purple' },
-    { color: '#1a3a3a', title: 'Dark Teal' },
-    { color: '#2a2a2a', title: 'Charcoal' },
+    { color: '#2b3a50', title: 'Slate Blue' },
+    { color: '#2e4a3e', title: 'Deep Sage' },
+    { color: '#4a3040', title: 'Plum' },
+    { color: '#3e4235', title: 'Moss' },
+    { color: '#463a2e', title: 'Cocoa' },
+    { color: '#2e3e4a', title: 'Storm' },
+    { color: '#3a3a3a', title: 'Graphite' },
 ];
 const PALETTE_LIGHT = [
-    { color: '#dde4f7', title: 'Soft Blue' },
-    { color: '#d5ecd5', title: 'Soft Green' },
-    { color: '#f5d5d5', title: 'Soft Red' },
-    { color: '#f5ead5', title: 'Soft Amber' },
-    { color: '#ead5f5', title: 'Soft Lavender' },
-    { color: '#d5f0ee', title: 'Soft Teal' },
-    { color: '#e8e8e8', title: 'Light Gray' },
+    { color: '#8ecdc9', title: 'Light Blue' },
+    { color: '#9effc6', title: 'Mint' },
+    { color: '#c9b8d9', title: 'Dusty Lilac' },
+    { color: '#b8c9a8', title: 'Sage' },
+    { color: '#d4c1a8', title: 'Sandstone' },
+    { color: '#a8b8c9', title: 'Slate' },
+    { color: '#c9c0b8', title: 'Warm Gray' },
 ];
 
 let _paletteOpen = false;
@@ -1252,7 +1252,9 @@ function exRenderList(examples) {
 }
 
 function exToggleShowAll() {
-    exShowAllBoards = document.getElementById('exShowAll').checked;
+    const btn = document.getElementById('exShowAll');
+    exShowAllBoards = !exShowAllBoards;
+    btn.classList.toggle('checked', exShowAllBoards);
     exFilterExamples(document.getElementById('exSearch').value);
 }
 
@@ -2062,6 +2064,8 @@ window.addEventListener('message', e => {
             if (downIcon) { downIcon.src = msg.uris.down; } }
             { const exRefresh = document.getElementById('exRefreshIcon');
             if (exRefresh) { exRefresh.src = msg.uris.refresh; } }
+            { const exCheckIcon = document.getElementById('exShowAllIcon');
+            if (exCheckIcon) { exCheckIcon.src = msg.uris.check; } }
             { const npRefresh = document.getElementById('npRefreshIcon');
             if (npRefresh) { npRefresh.src = msg.uris.refresh; } }
             break;

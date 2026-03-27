@@ -210,13 +210,19 @@
         |[+]|[-]|
         ```
 
-- [ ] Add tests for project creation
- - [ ] Test with existing and new projects
- - [ ] Make sure backups for overwritten files are correct
+- [x] Add tests for project creation
+ - [x] Test with existing and new projects
+ - [x] Make sure backups for overwritten files are correct
 
 - [x] Make tooltips in html more concise to fit better, Don't touch command previews that expand on long hover
 
 - [x] Add hex input for custom panel color
+
+- [ ] Make color choices evenly wrap, last two currently only ones on next line should be even rows
+- [ ] Add config in .rustdyno for default colors #8ecdc9
+- [ ] If can add button in .rustdyno/rustdyno.toml file to save as global rustdyno file. Or replace current with global. Also add replace rustdyno.toml button with global rustdyno.toml in pannel. Add backup in .rustdyno/ if replacing existing.
+
+- [ ] Add many animated checks
 
 # ?
 - [ ] integrate installer for board toolchains??
