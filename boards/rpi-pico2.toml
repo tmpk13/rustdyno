@@ -21,24 +21,24 @@ channels = [{ up = 0, name = "Terminal" }]
 [new_project]
 runner = "probe-rs run --chip RP2350A --protocol swd"
 
-dependencies = """
+dependencies = '''
 cortex-m         = { version = "0.7.7", features = ["inline-asm"] }
 cortex-m-rt      = "0.7.5"
 panic-halt       = "1.0"
 rtt-target       = "0.6"
 rp235x-hal       = { version = "0.2", features = ["rt"] }
-"""
+'''
 
 [[new_project.files]]
 path              = "rustdyno.toml"
 replace_if_exists = true
-content = """
+content = '''
 default="rpi-pico2.toml"
-"""
+'''
 
 [[new_project.files]]
 path    = "src/main.rs"
-content = """
+content = '''
 #![no_std]
 #![no_main]
 
@@ -47,7 +47,7 @@ use panic_halt as _;
 use rtt_target::{rtt_init_print, rprintln};
 use rp235x_hal as hal;
 
-#[link_section = \".start_block\"]
+#[link_section = ".start_block"]
 #[used]
 pub static IMAGE_DEF: hal::block::ImageDef = hal::block::ImageDef::secure_exe();
 
@@ -57,17 +57,17 @@ const XTAL_FREQ_HZ: u32 = 12_000_000;
 fn main() -> ! {
     rtt_init_print!();
     let _pac = hal::pac::Peripherals::take().unwrap();
-    rprintln!(\"Hello from RP2350!\");
+    rprintln!("Hello from RP2350!");
     loop {}
 }
-"""
+'''
 
 [[new_project.files]]
 path              = "Embed.toml"
 replace_if_exists = true
-content = """
+content = '''
 [default.general]
-chip = \"RP2350A\"
+chip = "RP2350A"
 
 [default.reset]
 halt_afterwards = false
@@ -77,26 +77,26 @@ enabled = true
 
 [default.gdb]
 enabled = false
-"""
+'''
 
 [[new_project.files]]
 path              = "memory.x"
 replace_if_exists = true
-content = """
+content = '''
 MEMORY {
     FLASH : ORIGIN = 0x10000000, LENGTH = 4096K
     RAM   : ORIGIN = 0x20000000, LENGTH = 520K
 }
-"""
+'''
 
 [[new_project.files]]
 path              = ".cargo/config.toml"
 replace_if_exists = true
-content = """
+content = '''
 [target.thumbv8m.main-none-eabihf]
-runner    = \"probe-rs run --chip RP2350A --protocol {{PROTOCOL}}\"
-rustflags = [\"-C\", \"link-arg=-Tlink.x\", \"-C\", \"link-arg=-Tmemory.x\"]
+runner    = "probe-rs run --chip RP2350A --protocol {{PROTOCOL}}"
+rustflags = ["-C", "link-arg=-Tlink.x", "-C", "link-arg=-Tmemory.x"]
 
 [build]
-target = \"thumbv8m.main-none-eabihf\"
-"""
+target = "thumbv8m.main-none-eabihf"
+'''

@@ -31,25 +31,25 @@ channels = [{ up = 0, name = "Terminal" }]
 [new_project]
 runner = "probe-rs run --chip RP2040 --protocol swd"
 
-dependencies = """
+dependencies = '''
 cortex-m         = { version = "0.7.7", features = ["inline-asm"] }
 cortex-m-rt      = "0.7.5"
 panic-halt       = "1.0"
 rtt-target       = "0.6"
 rp2040-hal       = { version = "0.10", features = ["rt"] }
 rp2040-boot2     = "0.3"
-"""
+'''
 
 [[new_project.files]]
 path              = "rustdyno.toml"
 replace_if_exists = true
-content = """
+content = '''
 default="rpi-pico.toml"
-"""
+'''
 
 [[new_project.files]]
 path    = "src/main.rs"
-content = """
+content = '''
 #![no_std]
 #![no_main]
 
@@ -58,7 +58,7 @@ use panic_halt as _;
 use rtt_target::{rtt_init_print, rprintln};
 use rp2040_hal as hal;
 
-#[link_section = \".boot2\"]
+#[link_section = ".boot2"]
 #[used]
 pub static BOOT2: [u8; 256] = rp2040_boot2::BOOT_LOADER_GENERIC_03H;
 
@@ -68,17 +68,17 @@ const XTAL_FREQ_HZ: u32 = 12_000_000;
 fn main() -> ! {
     rtt_init_print!();
     let _pac = hal::pac::Peripherals::take().unwrap();
-    rprintln!(\"Hello from RP2040!\");
+    rprintln!("Hello from RP2040!");
     loop {}
 }
-"""
+'''
 
 [[new_project.files]]
 path              = "Embed.toml"
 replace_if_exists = true
-content = """
+content = '''
 [default.general]
-chip = \"RP2040\"
+chip = "RP2040"
 
 [default.reset]
 halt_afterwards = false
@@ -88,27 +88,27 @@ enabled = true
 
 [default.gdb]
 enabled = false
-"""
+'''
 
 [[new_project.files]]
 path              = "memory.x"
 replace_if_exists = true
-content = """
+content = '''
 MEMORY {
     BOOT2             : ORIGIN = 0x10000000, LENGTH = 0x100
     FLASH             : ORIGIN = 0x10000100, LENGTH = 2048K - 0x100
     RAM               : ORIGIN = 0x20000000, LENGTH = 256K
 }
-"""
+'''
 
 [[new_project.files]]
 path              = ".cargo/config.toml"
 replace_if_exists = true
-content = """
+content = '''
 [target.thumbv6m-none-eabi]
-runner    = \"probe-rs run --chip RP2040 --protocol {{PROTOCOL}}\"
-rustflags = [\"-C\", \"link-arg=-Tlink.x\", \"-C\", \"link-arg=-Tmemory.x\"]
+runner    = "probe-rs run --chip RP2040 --protocol {{PROTOCOL}}"
+rustflags = ["-C", "link-arg=-Tlink.x", "-C", "link-arg=-Tmemory.x"]
 
 [build]
-target = \"thumbv6m-none-eabi\"
-"""
+target = "thumbv6m-none-eabi"
+'''

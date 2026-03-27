@@ -21,7 +21,7 @@ channels = [{ up = 0, name = "Terminal" }]
 [new_project]
 runner = "probe-rs run --chip STM32F103C8Tx --protocol swd"
 
-dependencies = """
+dependencies = '''
 cortex-m = { version = "0.7.7", features = ["critical-section-single-core"] }
 cortex-m-rt = "0.7.5"
 nb = "1.1.0"
@@ -29,18 +29,18 @@ panic-halt = "1.0.0"
 rtt-target = "0.6.2"
 stm32f1xx-hal = { version = "0.11.0", features = ["stm32f103"] }
 
-"""
+'''
 
 [[new_project.files]]
 path              = "rustdyno.toml"
 replace_if_exists = true
-content = """
+content = '''
 default="stm32f103C6.toml"
-"""
+'''
 
 [[new_project.files]]
 path    = "src/main.rs"
-content = """
+content = '''
 #![no_std]
 #![no_main]
 
@@ -51,29 +51,29 @@ use rtt_target::{rtt_init_print, rprintln};
 #[entry]
 fn main() -> ! {
     rtt_init_print!();
-    rprintln!(\"Hello from STM32F103!\");
+    rprintln!("Hello from STM32F103!");
     loop {}
 }
-"""
+'''
 
 [[new_project.files]]
 path              = "memory.x"
 replace_if_exists = true
-content = """
+content = '''
 MEMORY {
     FLASH : ORIGIN = 0x08000000, LENGTH = 32K
     RAM   : ORIGIN = 0x20000000, LENGTH = 10K
 }
-"""
+'''
 
 [[new_project.files]]
 path              = ".cargo/config.toml"
 replace_if_exists = true
-content = """
+content = '''
 [build]
-target = \"thumbv7m-none-eabi\"
+target = "thumbv7m-none-eabi"
 
 [target.thumbv7m-none-eabi]
-runner = \"probe-rs run --chip STM32F103C6\"
-rustflags = [\"-C\", \"link-arg=-Tlink.x\"]
-"""
+runner = "probe-rs run --chip STM32F103C6"
+rustflags = ["-C", "link-arg=-Tlink.x"]
+'''

@@ -31,25 +31,25 @@ channels = [{ up = 0, name = "Terminal" }]
 [new_project]
 runner = "probe-rs run --chip STM32F411CEUx --protocol swd"
 
-dependencies = """
+dependencies = '''
 cortex-m      = { version = "0.7.7", features = ["critical-section-single-core"] }
 cortex-m-rt   = "0.7.5"
 nb            = "1.1"
 panic-halt    = "1.0"
 rtt-target    = "0.6"
 stm32f4xx-hal = { version = "0.22", features = ["stm32f411", "rt"] }
-"""
+'''
 
 [[new_project.files]]
 path              = "rustdyno.toml"
 replace_if_exists = true
-content = """
+content = '''
 default="stm32f4.toml"
-"""
+'''
 
 [[new_project.files]]
 path    = "src/main.rs"
-content = """
+content = '''
 #![no_std]
 #![no_main]
 
@@ -60,17 +60,17 @@ use rtt_target::{rtt_init_print, rprintln};
 #[entry]
 fn main() -> ! {
     rtt_init_print!();
-    rprintln!(\"Hello from STM32F411!\");
+    rprintln!("Hello from STM32F411!");
     loop {}
 }
-"""
+'''
 
 [[new_project.files]]
 path              = "Embed.toml"
 replace_if_exists = true
-content = """
+content = '''
 [default.general]
-chip = \"STM32F411CEUx\"
+chip = "STM32F411CEUx"
 
 [default.reset]
 halt_afterwards = false
@@ -80,26 +80,26 @@ enabled = true
 
 [default.gdb]
 enabled = false
-"""
+'''
 
 [[new_project.files]]
 path              = "memory.x"
 replace_if_exists = true
-content = """
+content = '''
 MEMORY {
     FLASH : ORIGIN = 0x08000000, LENGTH = 512K
     RAM   : ORIGIN = 0x20000000, LENGTH = 128K
 }
-"""
+'''
 
 [[new_project.files]]
 path              = ".cargo/config.toml"
 replace_if_exists = true
-content = """
+content = '''
 [target.thumbv7em-none-eabihf]
-runner    = \"probe-rs run --chip STM32F411CEUx --protocol {{PROTOCOL}}\"
-rustflags = [\"-C\", \"link-arg=-Tlink.x\", \"-C\", \"link-arg=-Tmemory.x\"]
+runner    = "probe-rs run --chip STM32F411CEUx --protocol {{PROTOCOL}}"
+rustflags = ["-C", "link-arg=-Tlink.x", "-C", "link-arg=-Tmemory.x"]
 
 [build]
-target = \"thumbv7em-none-eabihf\"
-"""
+target = "thumbv7em-none-eabihf"
+'''

@@ -21,25 +21,25 @@ channels = [{ up = 0, name = "Terminal" }]
 [new_project]
 runner = "probe-rs run --chip STM32WLE5JCIx --protocol swd"
 
-dependencies = """
+dependencies = '''
 cortex-m       = { version = "0.7.7", features = ["critical-section-single-core"] }
 cortex-m-rt    = "0.7.5"
 nb             = "1.1"
 panic-halt     = "1.0"
 rtt-target     = "0.6"
 stm32wlxx-hal  = { version = "0.3", features = ["stm32wle5", "rt"] }
-"""
+'''
 
 [[new_project.files]]
 path              = "rustdyno.toml"
 replace_if_exists = true
-content = """
+content = '''
 default="stm32wle5jc.toml"
-"""
+'''
 
 [[new_project.files]]
 path    = "src/main.rs"
-content = """
+content = '''
 #![no_std]
 #![no_main]
 
@@ -50,17 +50,17 @@ use rtt_target::{rtt_init_print, rprintln};
 #[entry]
 fn main() -> ! {
     rtt_init_print!();
-    rprintln!(\"Hello from STM32WLE5JC!\");
+    rprintln!("Hello from STM32WLE5JC!");
     loop {}
 }
-"""
+'''
 
 [[new_project.files]]
 path              = "Embed.toml"
 replace_if_exists = true
-content = """
+content = '''
 [default.general]
-chip = \"STM32WLE5JCIx\"
+chip = "STM32WLE5JCIx"
 
 [default.reset]
 halt_afterwards = false
@@ -70,26 +70,26 @@ enabled = true
 
 [default.gdb]
 enabled = false
-"""
+'''
 
 [[new_project.files]]
 path              = "memory.x"
 replace_if_exists = true
-content = """
+content = '''
 MEMORY {
     FLASH : ORIGIN = 0x08000000, LENGTH = 256K
     RAM   : ORIGIN = 0x20000000, LENGTH = 64K
 }
-"""
+'''
 
 [[new_project.files]]
 path              = ".cargo/config.toml"
 replace_if_exists = true
-content = """
+content = '''
 [target.thumbv7em-none-eabi]
-runner    = \"probe-rs run --chip STM32WLE5JCIx --protocol {{PROTOCOL}}\"
-rustflags = [\"-C\", \"link-arg=-Tlink.x\", \"-C\", \"link-arg=-Tmemory.x\"]
+runner    = "probe-rs run --chip STM32WLE5JCIx --protocol {{PROTOCOL}}"
+rustflags = ["-C", "link-arg=-Tlink.x", "-C", "link-arg=-Tmemory.x"]
 
 [build]
-target = \"thumbv7em-none-eabi\"
-"""
+target = "thumbv7em-none-eabi"
+'''

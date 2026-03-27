@@ -15,23 +15,23 @@ enabled = false          # No RTT on AVR; use serial (UART) for output
 [new_project]
 runner = "ravedude nano -cb 57600"
 
-dependencies = """
+dependencies = '''
 avr-device    = { version = "0.5", features = ["atmega328p"] }
 arduino-hal   = { git = "https://github.com/Rahix/avr-hal", features = ["arduino-nano"] }
 panic-halt    = "1.0"
 ufmt          = "0.2"
-"""
+'''
 
 [[new_project.files]]
 path              = "rustdyno.toml"
 replace_if_exists = true
-content = """
+content = '''
 default="arduino-nano.toml"
-"""
+'''
 
 [[new_project.files]]
 path    = "src/main.rs"
-content = """
+content = '''
 #![no_std]
 #![no_main]
 
@@ -43,31 +43,31 @@ fn main() -> ! {
     let pins = arduino_hal::pins!(dp);
     let mut serial = arduino_hal::default_serial!(dp, pins, 57600);
 
-    ufmt::uwriteln!(&mut serial, \"Hello from ATmega328P!\").unwrap();
+    ufmt::uwriteln!(&mut serial, "Hello from ATmega328P!").unwrap();
 
     loop {}
 }
-"""
+'''
 
 [[new_project.files]]
 path              = "rust-toolchain.toml"
 replace_if_exists = true
-content = """
+content = '''
 [toolchain]
-channel    = \"nightly\"
-components = [\"rust-src\"]
-"""
+channel    = "nightly"
+components = ["rust-src"]
+'''
 
 [[new_project.files]]
 path              = ".cargo/config.toml"
 replace_if_exists = true
-content = """
+content = '''
 [build]
-target = \"avr-atmega328p\"
+target = "avr-atmega328p"
 
 [target.avr-atmega328p]
-runner = \"ravedude nano -cb 57600\"
+runner = "ravedude nano -cb 57600"
 
 [unstable]
-build-std = [\"core\"]
-"""
+build-std = ["core"]
+'''

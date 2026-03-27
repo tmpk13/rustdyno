@@ -26,23 +26,23 @@ channels = [{ up = 0, name = "Terminal" }]
 [new_project]
 runner = "teensy_loader_cli --mcu=TEENSY32 -w -v"
 
-dependencies = """
+dependencies = '''
 cortex-m    = { version = "0.7.7", features = ["inline-asm", "critical-section-single-core"] }
 cortex-m-rt = "0.7.5"
 panic-halt  = "1.0"
 rtt-target  = "0.6"
-"""
+'''
 
 [[new_project.files]]
 path              = "rustdyno.toml"
 replace_if_exists = true
-content = """
+content = '''
 default="teensy32.toml"
-"""
+'''
 
 [[new_project.files]]
 path    = "src/main.rs"
-content = """
+content = '''
 #![no_std]
 #![no_main]
 
@@ -53,30 +53,30 @@ use rtt_target::{rtt_init_print, rprintln};
 #[entry]
 fn main() -> ! {
     rtt_init_print!();
-    rprintln!(\"Hello from Teensy 3.2!\");
+    rprintln!("Hello from Teensy 3.2!");
     loop {}
 }
-"""
+'''
 
 [[new_project.files]]
 path              = "memory.x"
 replace_if_exists = true
-content = """
+content = '''
 MEMORY {
     FLASH  (rx)  : ORIGIN = 0x00000000, LENGTH = 256K
     RAM    (rwx) : ORIGIN = 0x1FFF8000, LENGTH = 64K
 }
-"""
+'''
 
 [[new_project.files]]
 path              = ".cargo/config.toml"
 replace_if_exists = true
-content = """
+content = '''
 [target.thumbv7em-none-eabihf]
 # teensy_loader_cli expects a .hex; wrap with objcopy
-runner    = \"sh -c 'arm-none-eabi-objcopy -O ihex $0 $0.hex && teensy_loader_cli --mcu=TEENSY32 -w -v $0.hex'\"
-rustflags = [\"-C\", \"link-arg=-Tlink.x\", \"-C\", \"link-arg=-Tmemory.x\"]
+runner    = "sh -c 'arm-none-eabi-objcopy -O ihex $0 $0.hex && teensy_loader_cli --mcu=TEENSY32 -w -v $0.hex'"
+rustflags = ["-C", "link-arg=-Tlink.x", "-C", "link-arg=-Tmemory.x"]
 
 [build]
-target = \"thumbv7em-none-eabihf\"
-"""
+target = "thumbv7em-none-eabihf"
+'''

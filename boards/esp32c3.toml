@@ -35,27 +35,27 @@ command = "cargo generate esp-rs/esp-idf-template cargo --name {{PROJECT_NAME}}"
 label   = "esp-generate"
 command = "esp-generate --chip esp32c3 -o stack-smashing-protection -o esp-backtrace -o vscode {{PROJECT_NAME}}"
 
-dependencies = """
+dependencies = '''
 anyhow      = "1"
 esp-idf-hal = "0.46"
 esp-idf-svc = { version = "0.52", features = ["binstart"] }
 log         = "0.4"
-"""
+'''
 
-"build-dependencies" = """
+"build-dependencies" = '''
 embuild = "0.33"
-"""
+'''
 
 [[new_project.files]]
 path              = "rustdyno.toml"
 replace_if_exists = true
-content = """
+content = '''
 default="esp32c3.toml"
-"""
+'''
 
 [[new_project.files]]
 path    = "src/main.rs"
-content = """
+content = '''
 use anyhow::Result;
 use esp_idf_svc::log::EspLogger;
 
@@ -63,34 +63,34 @@ fn main() -> Result<()> {
     esp_idf_svc::sys::link_patches();
     EspLogger::initialize_default();
 
-    log::info!(\"Hello from ESP32-C3!\");
+    log::info!("Hello from ESP32-C3!");
 
     loop {
         std::thread::sleep(std::time::Duration::from_secs(1));
     }
 }
-"""
+'''
 
 [[new_project.files]]
 path    = "build.rs"
-content = """
+content = '''
 fn main() {
     embuild::espidf::sysenv::output();
 }
-"""
+'''
 
 [[new_project.files]]
 path              = "rust-toolchain.toml"
 replace_if_exists = true
-content = """
+content = '''
 [toolchain]
-channel    = \"nightly\"
-components = [\"rust-src\"]
-"""
+channel    = "nightly"
+components = ["rust-src"]
+'''
 
 [[new_project.files]]
 path    = "sdkconfig.defaults"
-content = """
+content = '''
 # Rust needs a larger main task stack than the default 3K
 CONFIG_ESP_MAIN_TASK_STACK_SIZE=8192
 
@@ -101,25 +101,25 @@ CONFIG_FREERTOS_IDLE_TASK_STACKSIZE=4096
 # Increase if you spawn Rust threads that allocate large stack variables
 # or use std::thread::Builder::new().stack_size(XXX) instead
 CONFIG_PTHREAD_TASK_STACK_SIZE_DEFAULT=4096
-"""
+'''
 
 [[new_project.files]]
 path              = ".cargo/config.toml"
 replace_if_exists = true
-content = """
+content = '''
 [build]
-target = \"riscv32imc-esp-espidf\"
+target = "riscv32imc-esp-espidf"
 
-[target.'cfg(target_os = \"espidf\")']
-linker    = \"ldproxy\"
-runner    = \"espflash flash --monitor\"
-rustflags = [\"--cfg\", \"espidf_time64\"]
+[target.'cfg(target_os = "espidf")']
+linker    = "ldproxy"
+runner    = "espflash flash --monitor"
+rustflags = ["--cfg", "espidf_time64"]
 
 [unstable]
-build-std = [\"std\", \"panic_abort\"]
+build-std = ["std", "panic_abort"]
 
 [env]
-MCU                       = \"esp32c3\"
-ESP_IDF_VERSION           = \"v5.5.3\"
-ESP_IDF_TOOLS_INSTALL_DIR = \"workspace\"
-"""
+MCU                       = "esp32c3"
+ESP_IDF_VERSION           = "v5.5.3"
+ESP_IDF_TOOLS_INSTALL_DIR = "workspace"
+'''

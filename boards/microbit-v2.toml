@@ -22,27 +22,27 @@ channels = [{ up = 0, name = "Terminal" }]
 [new_project]
 runner = "probe-rs run --chip nRF52833_xxAA --protocol swd"
 
-dependencies = """
+dependencies = '''
 cortex-m         = { version = "0.7", features = ["inline-asm", "critical-section-single-core"] }
 cortex-m-rt      = "0.7"
 microbit-v2      = "0.16"
 panic-rtt-target = "0.2"
 rtt-target       = "0.6"
-"""
+'''
 
 [[new_project.files]]
 path              = "rustdyno.toml"
 replace_if_exists = true
-content = """
+content = '''
 default="microbit-v2.toml"
-"""
+'''
 
 [[new_project.files]]
 path              = "Embed.toml"
 replace_if_exists = true
-content = """
+content = '''
 [default.general]
-chip = \"nrf52833_xxAA\"
+chip = "nrf52833_xxAA"
 
 [default.reset]
 halt_afterwards = false
@@ -52,11 +52,11 @@ enabled = true
 
 [default.gdb]
 enabled = false
-"""
+'''
 
 [[new_project.files]]
 path    = "src/main.rs"
-content = """
+content = '''
 #![no_main]
 #![no_std]
 
@@ -76,19 +76,19 @@ fn main() -> ! {
         counter += 1;
     }
 }
-"""
+'''
 
 [[new_project.files]]
 path              = ".cargo/config.toml"
 replace_if_exists = true
-content = """
+content = '''
 [build]
-target = \"thumbv7em-none-eabihf\"
+target = "thumbv7em-none-eabihf"
 
 [target.thumbv7em-none-eabihf]
-runner = \"probe-rs run --chip nRF52833_xxAA --protocol {{PROTOCOL}}\"
+runner = "probe-rs run --chip nRF52833_xxAA --protocol {{PROTOCOL}}"
 rustflags = [
-  \"-C\", \"linker=rust-lld\",
-  \"-C\", \"link-arg=-Tlink.x\",
+  "-C", "linker=rust-lld",
+  "-C", "link-arg=-Tlink.x",
 ]
-"""
+'''
